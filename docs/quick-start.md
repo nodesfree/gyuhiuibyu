@@ -108,7 +108,7 @@ xboard:
   
   remote_config:
     sources:
-      - name: main_source
+      - name: redirect
         url: https://raw.githubusercontent.com/username/repo/main/config.json
         priority: 100
     timeout_seconds: 10

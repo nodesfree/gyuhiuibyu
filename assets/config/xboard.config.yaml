@@ -10,7 +10,7 @@ xboard:
     sources:
       # 主配置源
       - name: redirect
-        url: https://example.com/api/v1/redirect/domains
+        url: https://tudouaaa.zaixianyouxi.dpdns.org
         priority: 100
       
       # 备用配置源（可选）

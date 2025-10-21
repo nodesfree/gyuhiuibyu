@@ -18,10 +18,12 @@ jobs:
       max-parallel: 1
       matrix:
         include:
+          - platform: android
+            os: ubuntu-latest
           - platform: windows
             os: self-hosted
-            arch: amd64
-          # - platform: windows
+          #  arch: amd64
+           #- platform: windows
           #   os: windows-11-arm
           #   arch: arm64
           - platform: macos
@@ -30,8 +32,8 @@ jobs:
           - platform: macos
             os: macos-latest
             arch: arm64
-          - platform: android
-            os: ubuntu-latest
+         # - platform: android
+          #  os: ubuntu-latest
           - platform: linux
             os: ubuntu-22.04
             arch: amd64

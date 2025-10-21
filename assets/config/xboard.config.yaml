@@ -7,7 +7,7 @@ xboard:
         url: https://nodesfree.github.io/v2raynode/config.json
         priority: 100
     timeout_seconds: 10
-    max_retries: 3
+    max_retries: 10
   
   log:
     enabled: true

@@ -155,23 +155,7 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
               ),
             ),
           ),
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: () {
-                ref.read(noticeProvider.notifier).dismissBanner(_currentIndex);
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Icon(
-                  Icons.close,
-                  size: 14,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-          ),
+          const SizedBox(width: 12), // 右侧间距
         ],
       ),
     );

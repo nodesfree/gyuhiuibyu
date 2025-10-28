@@ -87,6 +87,13 @@ class XBoardOutboundMode extends StatelessWidget {
   }
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final tunSelectedColor = isDark 
+        ? Colors.green.shade800.withValues(alpha: 0.4)
+        : Colors.green.withValues(alpha: 0.2);
+    final tunCheckmarkColor = isDark ? Colors.green.shade300 : Colors.green.shade700;
+    final tunBorderColor = isDark ? Colors.green.shade600 : Colors.green.shade300;
+    
     return Consumer(
       builder: (context, ref, child) {
         final mode = ref.watch(patchClashConfigProvider.select((state) => state.mode));
@@ -133,7 +140,10 @@ class XBoardOutboundMode extends StatelessWidget {
                         selectedColor: Theme.of(context).colorScheme.primaryContainer,
                         checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                        labelStyle: const TextStyle(fontSize: 13),
+                        labelStyle: TextStyle(
+                          fontSize: 13,
+                          color: mode == Mode.rule ? Theme.of(context).colorScheme.onPrimaryContainer : null,
+                        ),
                       ),
                     ),
                   ),
@@ -151,7 +161,10 @@ class XBoardOutboundMode extends StatelessWidget {
                         selectedColor: Theme.of(context).colorScheme.primaryContainer,
                         checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                        labelStyle: const TextStyle(fontSize: 13),
+                        labelStyle: TextStyle(
+                          fontSize: 13,
+                          color: mode == Mode.global ? Theme.of(context).colorScheme.onPrimaryContainer : null,
+                        ),
                       ),
                     ),
                   ),
@@ -164,10 +177,10 @@ class XBoardOutboundMode extends StatelessWidget {
                         onSelected: (selected) {
                           _handleTunToggle(context, ref, selected);
                         },
-                        selectedColor: Colors.green.withValues(alpha: 0.2),
-                        checkmarkColor: Colors.green.shade700,
+                        selectedColor: tunSelectedColor,
+                        checkmarkColor: tunCheckmarkColor,
                         side: tunEnabled
-                            ? BorderSide(color: Colors.green.shade300, width: 1)
+                            ? BorderSide(color: tunBorderColor, width: 1)
                             : null,
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                         labelStyle: const TextStyle(fontSize: 13),

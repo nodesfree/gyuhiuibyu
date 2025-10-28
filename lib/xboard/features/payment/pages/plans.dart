@@ -103,18 +103,18 @@ class _PlansViewState extends ConsumerState<PlansView> {
             SizedBox(height: isDesktop ? 8 : 12),
             Row(
               children: [
-                Icon(Icons.data_usage, size: 16, color: Colors.grey.shade600),
+                Icon(Icons.data_usage, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
                 const SizedBox(width: 4),
                 Text(
                   '${AppLocalizations.of(context).xboardTraffic}: ${_formatTraffic(plan.transferEnable)}',
-                  style: TextStyle(color: Colors.grey.shade600),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
                 const SizedBox(width: 16),
-                Icon(Icons.speed, size: 16, color: Colors.grey.shade600),
+                Icon(Icons.speed, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
                 const SizedBox(width: 4),
                 Text(
                   '${AppLocalizations.of(context).xboardSpeedLimit}: ${_getSpeedLimitText(plan)}',
-                  style: TextStyle(color: Colors.grey.shade600),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ],
             ),

@@ -81,13 +81,17 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
     }
   }
   Widget _buildFloatingButton(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // 暗黑模式使用浅色背景配黑色文字
+    final startColor = isDark ? Colors.green.shade200 : Colors.green.shade600;
+    final stopColor = isDark ? Colors.blue.shade200 : colorScheme.primary;
+    
     return Theme(
       data: Theme.of(context).copyWith(
         floatingActionButtonTheme: FloatingActionButtonThemeData(
-          backgroundColor: isStart 
-            ? Colors.green.shade600 
-            : Theme.of(context).colorScheme.primary,
-          foregroundColor: Colors.white,
+          backgroundColor: isStart ? startColor : stopColor,
+          foregroundColor: isDark ? Colors.black : Colors.white,
           sizeConstraints: const BoxConstraints(
             minWidth: 56,
             maxWidth: 200,
@@ -129,12 +133,13 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
           builder: (_, ref, __) {
             final runTime = ref.watch(runTimeProvider);
             final text = utils.getTimeText(runTime);
+            final isDark = Theme.of(context).brightness == Brightness.dark;
             return Text(
               text,
               maxLines: 1,
               overflow: TextOverflow.visible,
               style: Theme.of(context).textTheme.titleMedium?.toSoftBold.copyWith(
-                color: Colors.white,
+                color: isDark ? Colors.black : Colors.white,
               ),
             );
           },
@@ -143,6 +148,12 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
     );
   }
   Widget _buildInlineButton(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // 暗黑模式使用浅色背景配黑色文字
+    final startColor = isDark ? Colors.green.shade200 : Colors.green.shade600;
+    final stopColor = isDark ? Colors.blue.shade200 : colorScheme.primary;
+    
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: AnimatedBuilder(
@@ -150,9 +161,7 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
         builder: (_, child) {
           return Container(
             decoration: BoxDecoration(
-              color: isStart
-                ? Colors.green.shade600
-                : Theme.of(context).colorScheme.primary,
+              color: isStart ? startColor : stopColor,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Material(
@@ -171,7 +180,7 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
                         icon: AnimatedIcons.play_pause,
                         progress: _animation,
                         size: 24,
-                        color: Colors.white,
+                        color: isDark ? Colors.black : Colors.white,
                       ),
                       const SizedBox(width: 10),
                       Column(
@@ -182,7 +191,7 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
                               ? AppLocalizations.of(context).xboardStopProxy
                               : AppLocalizations.of(context).xboardStartProxy,
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: Colors.white,
+                              color: isDark ? Colors.black : Colors.white,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -195,7 +204,9 @@ class _XBoardConnectButtonState extends ConsumerState<XBoardConnectButton>
                                 return Text(
                                   AppLocalizations.of(context).xboardRunningTime(text),
                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Colors.white.withValues(alpha: 0.9),
+                                    color: isDark 
+                                        ? Colors.black.withValues(alpha: 0.7)
+                                        : Colors.white.withValues(alpha: 0.9),
                                     fontSize: 12,
                                   ),
                                 );

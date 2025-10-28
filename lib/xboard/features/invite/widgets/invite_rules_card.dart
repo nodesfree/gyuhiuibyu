@@ -16,9 +16,9 @@ class InviteRulesCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+              Row(
               children: [
-                const Icon(Icons.rule, color: Colors.blue),
+                Icon(Icons.rule, color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   appLocalizations.inviteRules,

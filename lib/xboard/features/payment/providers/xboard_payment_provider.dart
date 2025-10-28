@@ -127,8 +127,9 @@ class XBoardPaymentNotifier extends Notifier<void> {
   }
   /// 提交支付
   /// 
-  /// 返回支付链接，如果失败返回 null
-  Future<String?> submitPayment({
+  /// 返回支付结果，包含 type 和 data
+  /// type: -1 表示余额支付成功, 0 表示跳转支付, 1 表示二维码支付
+  Future<Map<String, dynamic>?> submitPayment({
     required String tradeNo,
     required String method,
   }) async {
@@ -145,8 +146,8 @@ class XBoardPaymentNotifier extends Notifier<void> {
     try {
       commonPrint.log('提交支付: tradeNo=$tradeNo, method=$method');
 
-      // 调用域名服务提交支付，返回支付链接
-      final paymentUrl = await XBoardSDK.submitPayment(
+      // 调用域名服务提交支付，返回支付结果
+      final paymentResult = await XBoardSDK.submitPayment(
         tradeNo: tradeNo,
         method: int.tryParse(method) ?? 0,
       );
@@ -155,10 +156,10 @@ class XBoardPaymentNotifier extends Notifier<void> {
         isProcessingPayment: false,
       );
 
-      if (paymentUrl != null) {
+      if (paymentResult != null) {
         await loadPendingOrders();
-        commonPrint.log('支付提交成功，支付链接: $paymentUrl');
-        return paymentUrl;
+        commonPrint.log('支付提交成功，结果: $paymentResult');
+        return paymentResult;
       }
       return null;
     } catch (e) {

@@ -379,17 +379,23 @@ class XBoardSDK {
   }
 
   /// 提交支付
-  static Future<String?> submitPayment({
+  /// 返回 Map 包含 type 和 data
+  /// type: -1 表示余额支付成功, 0 表示跳转支付, 1 表示二维码支付
+  /// data: 支付URL或支付结果
+  static Future<Map<String, dynamic>?> submitPayment({
     required String tradeNo,
     required int method,
   }) async {
     try {
       final request = sdk.PaymentRequest(tradeNo: tradeNo, method: method.toString());
       final result = await _sdk.payment.submitOrderPayment(request);
-      // 返回支付URL或其他数据
+      // 返回完整的支付结果，包含 type 和 data
       final data = result.data;
-      if (data != null && data['data'] != null) {
-        return data['data'].toString();
+      if (data != null) {
+        return {
+          'type': data['type'] ?? 0,
+          'data': data['data'],
+        };
       }
       return null;
     } catch (e) {

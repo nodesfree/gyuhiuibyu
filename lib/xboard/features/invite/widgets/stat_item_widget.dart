@@ -14,9 +14,14 @@ class StatItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       children: [
-        Icon(icon, size: 32, color: Theme.of(context).primaryColor),
+        Icon(
+          icon, 
+          size: 32, 
+          color: colorScheme.primary,
+        ),
         const SizedBox(height: 8),
         Text(
           value,
@@ -28,9 +33,9 @@ class StatItemWidget extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: Colors.grey,
+            color: colorScheme.onSurface.withOpacity(0.6),
           ),
         ),
       ],

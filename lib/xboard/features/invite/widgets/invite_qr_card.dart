@@ -73,9 +73,9 @@ class InviteQrCard extends ConsumerWidget {
                     const SizedBox(height: 16),
                     Text(
                       appLocalizations.generatingInviteCode,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
-                        color: Colors.grey,
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                       ),
                     ),
                   ],
@@ -86,26 +86,26 @@ class InviteQrCard extends ConsumerWidget {
                 padding: const EdgeInsets.all(40),
                 child: Column(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.error_outline,
                       size: 64,
-                      color: Colors.grey,
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
                     ),
                     const SizedBox(height: 16),
                     Text(
                       appLocalizations.inviteCodeGenFailed,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.grey,
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       appLocalizations.checkNetwork,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey,
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                       ),
                       textAlign: TextAlign.center,
                     ),

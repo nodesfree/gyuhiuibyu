@@ -295,65 +295,65 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       
       XBoardLogger.debug('[FlClash] [确认购买] 支付提交完成，结果: $paymentResult');
       
-      if (mounted) {
+      if (mounted && paymentResult != null) {
         XBoardLogger.debug('[FlClash] [确认购买] 处理支付结果');
         
-        // 余额支付可能直接返回成功，不需要打开支付链接
-        if (paymentResult != null && paymentResult.isNotEmpty) {
-          // 有支付链接，打开浏览器
+        final paymentType = paymentResult['type'] as int? ?? 0;
+        final paymentData = paymentResult['data'];
+        
+        XBoardLogger.debug('[FlClash] [确认购买] 支付类型: $paymentType, 数据: $paymentData');
+        
+        // type: -1 表示余额支付成功（直接扣款）
+        // type: 0 表示跳转支付（需要打开浏览器）
+        // type: 1 表示二维码支付
+        if (paymentType == -1) {
+          // 余额支付成功，直接显示成功
+          XBoardLogger.debug('[FlClash] [确认购买] 余额支付成功，直接完成');
+          
+          // 隐藏等待对话框
+          PaymentWaitingManager.hide();
+          
+          // 刷新用户信息
+          try {
+            final userProvider = ref.read(xboardUserProvider.notifier);
+            userProvider.refreshSubscriptionInfoAfterPayment();
+          } catch (e) {
+            XBoardLogger.debug('[余额支付成功] 刷新订阅信息时出错: $e');
+          }
+          
+          // 显示成功消息并导航
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(AppLocalizations.of(context).xboardPaymentSuccess),
+                backgroundColor: Colors.green,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+            
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (mounted) {
+                try {
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                } catch (e) {
+                  XBoardLogger.debug('[余额支付成功] 导航时出错: $e');
+                }
+              }
+            });
+          }
+        } else if (paymentData != null && paymentData.toString().isNotEmpty) {
+          // 需要打开支付链接（跳转支付或二维码支付）
           PaymentWaitingManager.updateStep(PaymentStep.waitingPayment);
           XBoardLogger.debug('[FlClash] [确认购买] 支付链接获取成功，准备打开浏览器');
           
-          await _launchPaymentUrl(paymentResult, tradeNo);
+          await _launchPaymentUrl(paymentData.toString(), tradeNo);
           
           XBoardLogger.debug('[FlClash] [确认购买] 支付链接已打开，等待用户完成支付');
         } else {
-          // 可能是余额支付等直接扣款的方式，检查订单状态
-          XBoardLogger.debug('[FlClash] [确认购买] 无支付链接，可能是余额支付，检查订单状态');
-          
-          // 延迟检查订单状态
-          await Future.delayed(const Duration(seconds: 1));
-          final orderStatus = await XBoardSDK.getOrderByTradeNo(tradeNo);
-          
-          if (orderStatus != null && orderStatus.status == 1) {
-            // 订单已支付成功
-            XBoardLogger.debug('[FlClash] [确认购买] 余额支付成功');
-            
-            // 隐藏等待对话框
-            PaymentWaitingManager.hide();
-            
-            // 刷新用户信息
-            try {
-              final userProvider = ref.read(xboardUserProvider.notifier);
-              userProvider.refreshSubscriptionInfoAfterPayment();
-            } catch (e) {
-              XBoardLogger.debug('[余额支付成功] 刷新订阅信息时出错: $e');
-            }
-            
-            // 显示成功消息并导航
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('支付成功！'),
-                  backgroundColor: Colors.green,
-                  duration: Duration(seconds: 2),
-                ),
-              );
-              
-              Future.delayed(const Duration(milliseconds: 300), () {
-                if (mounted) {
-                  try {
-                    Navigator.of(context).popUntil((route) => route.isFirst);
-                  } catch (e) {
-                    XBoardLogger.debug('[余额支付成功] 导航时出错: $e');
-                  }
-                }
-              });
-            }
-          } else {
-            throw Exception('支付失败: 未获取到支付链接且订单未支付成功');
-          }
+          throw Exception('支付失败: 未获取到有效的支付数据');
         }
+      } else if (paymentResult == null) {
+        throw Exception('支付失败: 支付请求返回空结果');
       }
     } catch (e) {
       XBoardLogger.error('购买流程出错: $e');

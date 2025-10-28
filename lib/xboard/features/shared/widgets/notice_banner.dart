@@ -96,31 +96,35 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startAutoScroll(notices);
     });
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       height: 40,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.8),
-            Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.8),
-          ],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
+        color: isDark 
+            ? Theme.of(context).colorScheme.surfaceContainerHighest
+            : Theme.of(context).colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.15),
           width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Icon(
-              Icons.campaign,
-              size: 16,
+              Icons.campaign_rounded,
+              size: 18,
               color: Theme.of(context).colorScheme.primary,
             ),
           ),
@@ -139,7 +143,7 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
                             data: notices[_currentIndex % notices.length],
                             styleSheet: MarkdownStyleSheet(
                               p: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                color: Theme.of(context).colorScheme.onSurface,
                                 fontWeight: FontWeight.w500,
                                 overflow: TextOverflow.ellipsis,
                               ),

@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_html/flutter_html.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:fl_clash/xboard/features/notice/notice.dart';
+import '../styles/markdown_styles.dart';
 class NoticeBanner extends ConsumerStatefulWidget {
   const NoticeBanner({super.key});
   @override
@@ -106,32 +108,23 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
             child: GestureDetector(
               onTap: () => _showNoticeDialog(),
               child: ClipRect(
-                child: SlideTransition(
+                  child: SlideTransition(
                   position: _slideAnimation,
                   child: Container(
                     height: 40,
                     alignment: Alignment.centerLeft,
                     child: notices.isEmpty
                         ? const SizedBox.shrink()
-                        : Html(
+                        : MarkdownBody(
                             data: notices[_currentIndex % notices.length],
-                            style: {
-                              "body": Style(
-                                margin: Margins.zero,
-                                padding: HtmlPaddings.zero,
-                                fontSize: FontSize(
-                                  Theme.of(context).textTheme.bodySmall?.fontSize ?? 14,
-                                ),
+                            styleSheet: MarkdownStyleSheet(
+                              p: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: Theme.of(context).colorScheme.onPrimaryContainer,
                                 fontWeight: FontWeight.w500,
-                                maxLines: 1,
-                                textOverflow: TextOverflow.ellipsis,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              "*": Style(
-                                margin: Margins.zero,
-                                padding: HtmlPaddings.zero,
-                              ),
-                            },
+                              textAlign: WrapAlignment.start,
+                            ),
                           ),
                   ),
                 ),
@@ -167,6 +160,9 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
       builder: (context) => NoticeDetailDialog(
         notices: noticeState.visibleNotices,
         initialIndex: _currentIndex,
+        onPageChanged: (index) {
+          // 更新当前索引以便外部知道
+        },
       ),
     );
   }
@@ -174,108 +170,201 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
 class NoticeDetailDialog extends StatefulWidget {
   final List<dynamic> notices; // 使用 Notice 类型的列表
   final int initialIndex;
+  final ValueChanged<int>? onPageChanged;
+  
   const NoticeDetailDialog({
     super.key,
     required this.notices,
     this.initialIndex = 0,
+    this.onPageChanged,
   });
   @override
   State<NoticeDetailDialog> createState() => _NoticeDetailDialogState();
 }
-class _NoticeDetailDialogState extends State<NoticeDetailDialog> {
+class _NoticeDetailDialogState extends State<NoticeDetailDialog> 
+    with SingleTickerProviderStateMixin {
   late PageController _pageController;
   late int _currentIndex;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex.clamp(0, widget.notices.length - 1);
     _pageController = PageController(initialPage: _currentIndex);
+    
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    );
+    _animationController.forward();
   }
+  
   @override
   void dispose() {
     _pageController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
+  
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Container(
-        constraints: const BoxConstraints(
-          maxWidth: 500,
-          maxHeight: 600,
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        child: Container(
+          constraints: BoxConstraints(
+            maxWidth: screenWidth > 600 ? 600 : double.infinity,
+            maxHeight: screenHeight * 0.85,
+          ),
+          decoration: BoxDecoration(
+            // 在暗色主题下使用稍亮的背景色以区分弹窗
+            color: isDark 
+                ? Theme.of(context).colorScheme.surfaceContainerHighest
+                : Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(24),
+            // 添加明显的边框
+            border: Border.all(
+              color: isDark
+                  ? Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)
+                  : Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+              width: isDark ? 1.5 : 1,
+            ),
+            boxShadow: [
+              // 增强暗色主题下的阴影
+              BoxShadow(
+                color: isDark 
+                    ? Colors.black.withValues(alpha: 0.5)
+                    : Colors.black.withValues(alpha: 0.1),
+                blurRadius: isDark ? 30 : 20,
+                spreadRadius: isDark ? 2 : 0,
+                offset: const Offset(0, 10),
+              ),
+              BoxShadow(
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: isDark ? 0.15 : 0.05),
+                blurRadius: 40,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildHeader(),
+              Flexible(
+                child: widget.notices.length == 1
+                    ? _buildSingleNotice()
+                    : _buildMultipleNotices(),
+              ),
+            ],
+          ),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+      ),
+    );
+  }
+  
+  Widget _buildHeader() {
+    final currentNotice = widget.notices[_currentIndex];
+    final title = currentNotice.title ?? '无标题';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
+      decoration: BoxDecoration(
+        // 在暗色主题下头部使用更亮的背景色
+        color: isDark
+            ? Theme.of(context).colorScheme.surfaceContainer
+            : Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(24),
+        ),
+        border: Border(
+          bottom: BorderSide(
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: isDark ? 0.2 : 0.1),
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          if (widget.notices.length > 1) ...[
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 4,
+              ),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(16),
+                color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                  width: 1,
                 ),
               ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.campaign,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      '通知详情',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
-                    ),
-                  ),
-                  if (widget.notices.length > 1) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '${_currentIndex + 1}/${widget.notices.length}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                  ],
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close),
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  ),
-                ],
+              child: Text(
+                '${_currentIndex + 1}/${widget.notices.length}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11,
+                ),
               ),
             ),
-            Flexible(
-              child: widget.notices.length == 1
-                  ? _buildSingleNotice()
-                  : _buildMultipleNotices(),
-            ),
+            const SizedBox(width: 6),
           ],
-        ),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => Navigator.of(context).pop(),
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(6.0),
+                child: Icon(
+                  Icons.close_rounded,
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                  size: 20,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
   Widget _buildSingleNotice() {
     final notice = widget.notices[0];
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(24),
+      physics: const BouncingScrollPhysics(),
       child: _buildNoticeContent(notice),
     );
   }
@@ -285,71 +374,166 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog> {
         Expanded(
           child: PageView.builder(
             controller: _pageController,
+            physics: const BouncingScrollPhysics(),
             onPageChanged: (index) {
               setState(() {
                 _currentIndex = index;
               });
+              widget.onPageChanged?.call(index);
             },
             itemCount: widget.notices.length,
             itemBuilder: (context, index) {
               return SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(24),
+                physics: const BouncingScrollPhysics(),
                 child: _buildNoticeContent(widget.notices[index]),
               );
             },
           ),
         ),
-        Container(
-          padding: const EdgeInsets.all(16),
+        _buildNavigationBar(),
+      ],
+    );
+  }
+  
+  Widget _buildNavigationBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        // 在暗色主题下底部导航栏使用更亮的背景色
+        color: isDark
+            ? Theme.of(context).colorScheme.surfaceContainer
+            : Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(
+          bottom: Radius.circular(24),
+        ),
+        border: Border(
+          top: BorderSide(
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: isDark ? 0.2 : 0.1),
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildNavButton(
+            icon: Icons.chevron_left_rounded,
+            label: '上一条',
+            enabled: _currentIndex > 0,
+            onPressed: () => _pageController.previousPage(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            ),
+          ),
+          _buildPageIndicator(),
+          _buildNavButton(
+            icon: Icons.chevron_right_rounded,
+            label: '下一条',
+            enabled: _currentIndex < widget.notices.length - 1,
+            isReversed: true,
+            onPressed: () => _pageController.nextPage(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildNavButton({
+    required IconData icon,
+    required String label,
+    required bool enabled,
+    required VoidCallback onPressed,
+    bool isReversed = false,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: enabled ? onPressed : null,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            borderRadius: const BorderRadius.vertical(
-              bottom: Radius.circular(16),
+            color: enabled 
+                ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: enabled 
+                  ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)
+                  : Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+              width: 1,
             ),
           ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              TextButton.icon(
-                onPressed: _currentIndex > 0
-                    ? () => _pageController.previousPage(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        )
-                    : null,
-                icon: const Icon(Icons.chevron_left),
-                label: const Text('上一条'),
-              ),
-              Row(
-                children: List.generate(
-                  widget.notices.length,
-                  (index) => Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 2),
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: index == _currentIndex
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
+            mainAxisSize: MainAxisSize.min,
+            children: isReversed ? [
+              Text(
+                label,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: enabled 
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.outline,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              TextButton.icon(
-                onPressed: _currentIndex < widget.notices.length - 1
-                    ? () => _pageController.nextPage(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        )
-                    : null,
-                icon: const Icon(Icons.chevron_right),
-                label: const Text('下一条'),
+              const SizedBox(width: 4),
+              Icon(
+                icon,
+                size: 20,
+                color: enabled 
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.outline,
+              ),
+            ] : [
+              Icon(
+                icon,
+                size: 20,
+                color: enabled 
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.outline,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: enabled 
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.outline,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
         ),
-      ],
+      ),
+    );
+  }
+  
+  Widget _buildPageIndicator() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(
+        widget.notices.length,
+        (index) => AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          margin: const EdgeInsets.symmetric(horizontal: 3),
+          width: index == _currentIndex ? 24 : 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: index == _currentIndex
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ),
+      ),
     );
   }
   Widget _buildNoticeContent(dynamic notice) {
@@ -373,118 +557,64 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Html(
-            data: notice.title ?? '无标题',
-            style: {
-              "body": Style(
-                margin: Margins.zero,
-                padding: HtmlPaddings.zero,
-                fontSize: FontSize(
-                  Theme.of(context).textTheme.titleMedium?.fontSize ?? 16,
-                ),
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSecondaryContainer,
-              ),
-              "*": Style(
-                margin: Margins.zero,
-                padding: HtmlPaddings.zero,
-              ),
-            },
-          ),
-        ),
-        const SizedBox(height: 16),
+        // 时间信息
         if (notice.createdAt != null || notice.updatedAt != null) ...[
-          Row(
-            children: [
-              Icon(
-                Icons.access_time,
-                size: 16,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '发布时间：${formatTime(notice.createdAt)}',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-              ),
-            ],
+          Text(
+            formatTime(notice.createdAt),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+            ),
           ),
           const SizedBox(height: 12),
         ],
-        if (notice.tags != null && notice.tags.isNotEmpty) ...[
-          Wrap(
-            spacing: 8,
-            children: (notice.tags as List).map((tag) => Chip(
-              label: Text(
-                tag.toString(),
-                style: const TextStyle(fontSize: 12),
-              ),
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              side: BorderSide.none,
-            )).toList(),
-          ),
-          const SizedBox(height: 16),
-        ],
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
-            ),
-          ),
-          child: Html(
-            data: _processHtmlForDialog(notice.content ?? '暂无内容'),
-            style: {
-              "body": Style(
-                margin: Margins.zero,
-                padding: HtmlPaddings.zero,
-                fontSize: FontSize(
-                  Theme.of(context).textTheme.bodyMedium?.fontSize ?? 14,
-                ),
-                color: Theme.of(context).colorScheme.onSurface,
-                lineHeight: const LineHeight(1.6),
-              ),
-              "p": Style(
-                margin: Margins.only(bottom: 8),
-              ),
-              "h1, h2, h3, h4, h5, h6": Style(
-                fontWeight: FontWeight.bold,
-                margin: Margins.only(top: 8, bottom: 8),
-              ),
-              "strong, b": Style(
-                fontWeight: FontWeight.bold,
-              ),
-              "em, i": Style(
-                fontStyle: FontStyle.italic,
-              ),
-              "a": Style(
-                color: Theme.of(context).colorScheme.primary,
-                textDecoration: TextDecoration.underline,
-              ),
-              "ul, ol": Style(
-                margin: Margins.only(left: 16, bottom: 8),
-              ),
-              "li": Style(
-                margin: Margins.only(bottom: 4),
-              ),
-            },
-          ),
+        
+        // 内容区域
+        MarkdownBody(
+          data: _processMarkdownForDialog(notice.content ?? '暂无内容'),
+          styleSheet: NoticeMarkdownStyles.getNoticeContentStyle(context),
+          onTapLink: (text, href, title) => _handleLinkTap(href),
         ),
       ],
     );
   }
-  String _processHtmlForDialog(String htmlText) {
-    return htmlText.trim();
+  String _processMarkdownForDialog(String markdownText) {
+    return markdownText.trim();
+  }
+  
+  /// 处理Markdown中的链接点击
+  void _handleLinkTap(String? href) async {
+    if (href == null || href.isEmpty) return;
+    
+    try {
+      final uri = Uri.parse(href);
+      
+      // 检查是否可以启动该链接
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication, // 在外部浏览器打开
+        );
+      } else {
+        // 如果无法打开，显示提示
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('无法打开链接: $href'),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // 处理无效URL或其他错误
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('链接格式错误: $href'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    }
   }
 }

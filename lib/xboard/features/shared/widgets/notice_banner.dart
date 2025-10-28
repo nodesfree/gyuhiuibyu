@@ -5,6 +5,26 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:fl_clash/xboard/features/notice/notice.dart';
 import '../styles/markdown_styles.dart';
+import '../styles/html_styles.dart';
+
+/// 通知内容渲染类型
+enum NoticeRenderType {
+  /// Markdown 渲染
+  markdown,
+  /// HTML 渲染
+  html,
+}
+
+/// 全局配置：选择通知内容的渲染方式
+/// 
+/// 可选值：
+/// - null: 自动检测内容格式（默认，推荐）
+/// - NoticeRenderType.markdown: 强制使用 Markdown 渲染
+/// - NoticeRenderType.html: 强制使用 HTML 渲染
+/// 
+/// 设置为 null 时，程序会自动判断内容是 HTML 还是 Markdown
+const NoticeRenderType? kNoticeRenderType = null;
+
 class NoticeBanner extends ConsumerStatefulWidget {
   const NoticeBanner({super.key});
   @override
@@ -568,20 +588,82 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
           const SizedBox(height: 12),
         ],
         
-        // 内容区域
-        MarkdownBody(
-          data: _processMarkdownForDialog(notice.content ?? '暂无内容'),
-          styleSheet: NoticeMarkdownStyles.getNoticeContentStyle(context),
-          onTapLink: (text, href, title) => _handleLinkTap(href),
-        ),
+        // 内容区域 - 根据配置选择渲染方式
+        _buildContentWidget(notice),
       ],
     );
   }
+  /// 根据配置构建内容Widget（Markdown或HTML）
+  Widget _buildContentWidget(dynamic notice) {
+    final content = notice.content ?? '暂无内容';
+    
+    // 如果配置为 null，自动检测内容格式
+    final renderType = kNoticeRenderType ?? _detectContentType(content);
+    
+    switch (renderType) {
+      case NoticeRenderType.markdown:
+        return _buildMarkdownContent(content);
+      case NoticeRenderType.html:
+        return _buildHtmlContent(content);
+    }
+  }
+  
+  /// 自动检测内容类型
+  /// 
+  /// 通过检查内容中是否包含 HTML 标签来判断：
+  /// - 如果包含常见的 HTML 标签，认为是 HTML
+  /// - 否则认为是 Markdown
+  NoticeRenderType _detectContentType(String content) {
+    // 去除首尾空白
+    final trimmedContent = content.trim();
+    
+    // 如果内容为空，默认使用 Markdown
+    if (trimmedContent.isEmpty) {
+      return NoticeRenderType.markdown;
+    }
+    
+    // 常见的 HTML 标签模式
+    final htmlTagPattern = RegExp(
+      r'<(p|div|span|h[1-6]|ul|ol|li|br|hr|strong|em|a|img|table|tr|td|th|blockquote|pre|code)[>\s]',
+      caseSensitive: false,
+    );
+    
+    // 如果匹配到 HTML 标签，使用 HTML 渲染
+    if (htmlTagPattern.hasMatch(trimmedContent)) {
+      return NoticeRenderType.html;
+    }
+    
+    // 默认使用 Markdown 渲染
+    return NoticeRenderType.markdown;
+  }
+  
+  /// 构建Markdown内容
+  Widget _buildMarkdownContent(String content) {
+    return MarkdownBody(
+      data: _processMarkdownForDialog(content),
+      styleSheet: NoticeMarkdownStyles.getNoticeContentStyle(context),
+      onTapLink: (text, href, title) => _handleLinkTap(href),
+    );
+  }
+  
+  /// 构建HTML内容
+  Widget _buildHtmlContent(String content) {
+    return NoticeHtmlStyles.buildNoticeHtml(
+      context: context,
+      htmlContent: _processHtmlForDialog(content),
+      onTapUrl: (url) => _handleLinkTap(url),
+    );
+  }
+  
   String _processMarkdownForDialog(String markdownText) {
     return markdownText.trim();
   }
   
-  /// 处理Markdown中的链接点击
+  String _processHtmlForDialog(String htmlText) {
+    return htmlText.trim();
+  }
+  
+  /// 处理Markdown/HTML中的链接点击
   void _handleLinkTap(String? href) async {
     if (href == null || href.isEmpty) return;
     

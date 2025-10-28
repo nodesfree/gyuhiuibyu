@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:html/parser.dart' show parse;
+import 'package:flutter_markdown/flutter_markdown.dart';
+
 class PlanDescriptionWidget extends StatelessWidget {
   final String content;
   const PlanDescriptionWidget({
@@ -8,13 +9,6 @@ class PlanDescriptionWidget extends StatelessWidget {
   });
   @override
   Widget build(BuildContext context) {
-    final document = parse(content);
-    final String plainText = document.body?.text ?? '';
-    final lines = plainText
-        .split('\n')
-        .map((line) => line.trim())
-        .where((line) => line.isNotEmpty)
-        .toList();
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -22,23 +16,16 @@ class PlanDescriptionWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade200),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (var line in lines)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 4.0),
-              child: Text(
-                line,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.grey.shade700,
-                  fontSize: 14,
-                  height: 1.5,
-                ),
-              ),
-            ),
-        ],
+      child: MarkdownBody(
+        data: content,
+        styleSheet: MarkdownStyleSheet(
+          p: TextStyle(
+            color: Colors.grey.shade700,
+            fontSize: 14,
+            height: 1.5,
+          ),
+          textAlign: WrapAlignment.center,
+        ),
       ),
     );
   }

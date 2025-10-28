@@ -6,6 +6,7 @@ import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dar
 import 'package:fl_clash/xboard/features/payment/providers/xboard_payment_provider.dart';
 
 import '../widgets/payment_waiting_overlay.dart';
+import '../widgets/payment_method_selector_dialog.dart';
 import '../models/payment_step.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -207,18 +208,69 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       }
       XBoardLogger.debug('[FlClash] [确认购买] 订单创建成功，订单号: $tradeNo');
       PaymentWaitingManager.updateTradeNo(tradeNo);
-      XBoardLogger.debug('[FlClash] [确认购买] 步骤2: 开始加载支付页面');
-      PaymentWaitingManager.updateStep(PaymentStep.loadingPayment);
-      XBoardLogger.debug('[FlClash] [确认购买] 获取支付方式列表');
+      XBoardLogger.debug('[FlClash] [确认购买] 步骤2: 获取支付方式列表');
       final paymentMethods = await XBoardSDK.getPaymentMethods();
       XBoardLogger.debug('[FlClash] 支付方式获取响应: 获取到 ${paymentMethods.length} 个支付方式');
       if (paymentMethods.isEmpty) {
         throw Exception('暂无可用的支付方式');
       }
-      final firstPaymentMethod = paymentMethods.first;
-      XBoardLogger.debug('[FlClash] 支付方式获取成功，数量: ${paymentMethods.length}');
-      XBoardLogger.debug('[FlClash] 选择第一个支付方式: ID=${firstPaymentMethod.id}, Name=${firstPaymentMethod.name}');
-      XBoardLogger.debug('[FlClash] [确认购买] 步骤3: 验证支付方式');
+      
+      // 让用户选择支付方式
+      PaymentMethod? selectedPaymentMethod;
+      if (paymentMethods.length == 1) {
+        // 只有一个支付方式，直接使用
+        selectedPaymentMethod = paymentMethods.first;
+        XBoardLogger.debug('[FlClash] 只有一个支付方式，自动选择: ID=${selectedPaymentMethod.id}, Name=${selectedPaymentMethod.name}');
+      } else {
+        // 多个支付方式，让用户选择
+        PaymentWaitingManager.hide(); // 暂时隐藏等待对话框
+        if (mounted) {
+          selectedPaymentMethod = await PaymentMethodSelectorDialog.show(
+            context,
+            paymentMethods: paymentMethods,
+          );
+        }
+        
+        if (selectedPaymentMethod == null) {
+          // 用户取消了选择
+          XBoardLogger.debug('[FlClash] 用户取消了支付方式选择');
+          return;
+        }
+        
+        // 重新显示等待对话框
+        if (mounted) {
+          PaymentWaitingManager.show(
+            context,
+            onClose: () {
+              Navigator.of(context).pop();
+            },
+            onPaymentSuccess: () {
+              XBoardLogger.debug('[支付成功] ===== 收到支付成功回调 =====');
+              try {
+                final userProvider = ref.read(xboardUserProvider.notifier);
+                userProvider.refreshSubscriptionInfoAfterPayment();
+              } catch (e) {
+                XBoardLogger.debug('[支付成功] 刷新订阅信息时出错: $e');
+              }
+              Future.delayed(const Duration(milliseconds: 300), () {
+                if (mounted) {
+                  try {
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  } catch (e) {
+                    XBoardLogger.debug('[支付成功] 导航时出错: $e');
+                  }
+                }
+              });
+            },
+            tradeNo: tradeNo,
+          );
+        }
+        
+        XBoardLogger.debug('[FlClash] 用户选择了支付方式: ID=${selectedPaymentMethod.id}, Name=${selectedPaymentMethod.name}');
+      }
+      
+      XBoardLogger.debug('[FlClash] [确认购买] 步骤3: 开始支付');
+      PaymentWaitingManager.updateStep(PaymentStep.loadingPayment);
       PaymentWaitingManager.updateStep(PaymentStep.verifyPayment);
       XBoardLogger.debug('[FlClash] [确认购买] 检查订单状态...');
       try {
@@ -231,27 +283,76 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       } catch (e) {
         XBoardLogger.debug('[FlClash] [确认购买] 订单状态检查失败: $e');
       }
-      XBoardLogger.debug('[FlClash] [确认购买] 开始创建支付网关，订单号: $tradeNo, 支付方式: ${firstPaymentMethod.id}');
+      XBoardLogger.debug('[FlClash] [确认购买] 开始创建支付网关，订单号: $tradeNo, 支付方式: ${selectedPaymentMethod.id}');
       XBoardLogger.debug('[FlClash] [确认购买] 使用 PaymentProvider 提交支付');
-      XBoardLogger.debug('[FlClash] [确认购买] 支付方式ID类型: ${firstPaymentMethod.id.runtimeType}, 值: ${firstPaymentMethod.id}');
-      final paymentUrl = await paymentNotifier.submitPayment(
+      XBoardLogger.debug('[FlClash] [确认购买] 支付方式ID类型: ${selectedPaymentMethod.id.runtimeType}, 值: ${selectedPaymentMethod.id}');
+      
+      // 提交支付
+      final paymentResult = await paymentNotifier.submitPayment(
         tradeNo: tradeNo,
-        method: firstPaymentMethod.id.toString(),
+        method: selectedPaymentMethod.id.toString(),
       );
-      XBoardLogger.debug('[FlClash] [确认购买] 支付提交完成，支付链接: $paymentUrl');
+      
+      XBoardLogger.debug('[FlClash] [确认购买] 支付提交完成，结果: $paymentResult');
+      
       if (mounted) {
         XBoardLogger.debug('[FlClash] [确认购买] 处理支付结果');
-        if (paymentUrl != null && paymentUrl.isNotEmpty) {
-          // 支付提交成功，打开支付链接
+        
+        // 余额支付可能直接返回成功，不需要打开支付链接
+        if (paymentResult != null && paymentResult.isNotEmpty) {
+          // 有支付链接，打开浏览器
           PaymentWaitingManager.updateStep(PaymentStep.waitingPayment);
           XBoardLogger.debug('[FlClash] [确认购买] 支付链接获取成功，准备打开浏览器');
           
-          // 打开支付链接
-          await _launchPaymentUrl(paymentUrl, tradeNo);
+          await _launchPaymentUrl(paymentResult, tradeNo);
           
           XBoardLogger.debug('[FlClash] [确认购买] 支付链接已打开，等待用户完成支付');
         } else {
-          throw Exception('支付失败: 未获取到支付链接');
+          // 可能是余额支付等直接扣款的方式，检查订单状态
+          XBoardLogger.debug('[FlClash] [确认购买] 无支付链接，可能是余额支付，检查订单状态');
+          
+          // 延迟检查订单状态
+          await Future.delayed(const Duration(seconds: 1));
+          final orderStatus = await XBoardSDK.getOrderByTradeNo(tradeNo);
+          
+          if (orderStatus != null && orderStatus.status == 1) {
+            // 订单已支付成功
+            XBoardLogger.debug('[FlClash] [确认购买] 余额支付成功');
+            
+            // 隐藏等待对话框
+            PaymentWaitingManager.hide();
+            
+            // 刷新用户信息
+            try {
+              final userProvider = ref.read(xboardUserProvider.notifier);
+              userProvider.refreshSubscriptionInfoAfterPayment();
+            } catch (e) {
+              XBoardLogger.debug('[余额支付成功] 刷新订阅信息时出错: $e');
+            }
+            
+            // 显示成功消息并导航
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('支付成功！'),
+                  backgroundColor: Colors.green,
+                  duration: Duration(seconds: 2),
+                ),
+              );
+              
+              Future.delayed(const Duration(milliseconds: 300), () {
+                if (mounted) {
+                  try {
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  } catch (e) {
+                    XBoardLogger.debug('[余额支付成功] 导航时出错: $e');
+                  }
+                }
+              });
+            }
+          } else {
+            throw Exception('支付失败: 未获取到支付链接且订单未支付成功');
+          }
         }
       }
     } catch (e) {

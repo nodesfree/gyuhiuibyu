@@ -526,6 +526,8 @@
   "xboardOperationFailed": "操作失败",
   "xboardFailedToOpenPaymentPage": "打开支付页面失败",
   "xboardSelectPaymentPeriod": "选择购买周期",
+  "xboardSelectPaymentMethod": "选择支付方式",
+  "xboardHandlingFee": "手续费",
   "xboardCouponNotYetActive": "优惠券尚未生效",
   "xboardCouponExpired": "优惠券已过期",
   "xboardUnsupportedCouponType": "不支持的优惠券类型",

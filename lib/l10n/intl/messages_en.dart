@@ -1321,6 +1321,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Half-yearly",
     ),
     "xboardHandleLater": MessageLookupByLibrary.simpleMessage("Handle later"),
+    "xboardHandlingFee": MessageLookupByLibrary.simpleMessage("Handling fee"),
     "xboardHighSpeedNetwork": MessageLookupByLibrary.simpleMessage(
       "High-speed network",
     ),
@@ -1571,6 +1572,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardRunningTime": m34,
     "xboardSecureEncryption": MessageLookupByLibrary.simpleMessage(
       "Secure encryption",
+    ),
+    "xboardSelectPaymentMethod": MessageLookupByLibrary.simpleMessage(
+      "Select payment method",
     ),
     "xboardSelectPaymentPeriod": MessageLookupByLibrary.simpleMessage(
       "Select payment period",

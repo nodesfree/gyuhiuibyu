@@ -523,6 +523,8 @@
   "xboardOperationFailed": "Operation failed",
   "xboardFailedToOpenPaymentPage": "Failed to open payment page",
   "xboardSelectPaymentPeriod": "Select payment period",
+  "xboardSelectPaymentMethod": "Select payment method",
+  "xboardHandlingFee": "Handling fee",
   "xboardCouponNotYetActive": "Coupon not yet active",
   "xboardCouponExpired": "Coupon expired",
   "xboardUnsupportedCouponType": "Unsupported coupon type",

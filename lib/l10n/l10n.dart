@@ -4154,6 +4154,26 @@ class AppLocalizations {
     );
   }
 
+  /// `Select payment method`
+  String get xboardSelectPaymentMethod {
+    return Intl.message(
+      'Select payment method',
+      name: 'xboardSelectPaymentMethod',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Handling fee`
+  String get xboardHandlingFee {
+    return Intl.message(
+      'Handling fee',
+      name: 'xboardHandlingFee',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Coupon not yet active`
   String get xboardCouponNotYetActive {
     return Intl.message(

@@ -31,8 +31,11 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     super.dispose();
   }
   Future<void> _register() async {
-    // 检查邀请码
-    if (_inviteCodeController.text.trim().isEmpty) {
+    // 根据配置检查邀请码是否必填
+    final configAsync = ref.read(configProvider);
+    final isInviteForce = configAsync.value?.isInviteForce ?? false;
+    
+    if (isInviteForce && _inviteCodeController.text.trim().isEmpty) {
       _showInviteCodeDialog();
       return;
     }
@@ -42,15 +45,14 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         _isRegistering = true;
       });
       try {
-        final result = await XBoardSDK.register(
+        await XBoardSDK.register(
           email: _emailController.text,
           password: _passwordController.text,
           inviteCode: _inviteCodeController.text,
           emailCode: _emailCodeController.text,
         );
-        if (result == null) {
-          throw Exception('注册失败');
-        }
+        
+        // 注册成功
         if (mounted) {
           final storageService = ref.read(storageServiceProvider);
           await storageService.saveCredentials(
@@ -74,8 +76,42 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         }
       } catch (e) {
         if (mounted) {
+          // 提取详细的错误信息
+          String errorMessage = '注册失败';
+          
+          final errorStr = e.toString();
+          print('[RegisterPage] Caught error: $errorStr');
+          
+          // 尝试提取具体的错误信息
+          if (errorStr.contains('XBoardException')) {
+            // 格式1: XBoardException(400): 具体错误信息
+            if (errorStr.contains('): ')) {
+              final parts = errorStr.split('): ');
+              if (parts.length > 1) {
+                errorMessage = parts.sublist(1).join('): ').trim();
+              }
+            } 
+            // 格式2: XBoardException: 具体错误信息
+            else if (errorStr.contains('XBoardException: ')) {
+              errorMessage = errorStr.split('XBoardException: ').last.trim();
+            }
+          } else {
+            // 其他类型的错误，直接使用错误文本
+            errorMessage = errorStr;
+          }
+          
+          // 移除可能的 "Error: " 前缀
+          if (errorMessage.startsWith('Error: ')) {
+            errorMessage = errorMessage.substring(7);
+          }
+          
+          print('[RegisterPage] Display error message: $errorMessage');
+          
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(appLocalizations.registrationFailed(e.toString()))),
+            SnackBar(
+              content: Text(errorMessage),
+              duration: const Duration(seconds: 3),
+            ),
           );
         }
       } finally {
@@ -323,8 +359,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                             final isInviteForce = config?.isInviteForce ?? false;
                             return XBInputField(
                               controller: _inviteCodeController,
-                              labelText: '${appLocalizations.xboardInviteCode}${isInviteForce ? ' *' : ''}',
-                              hintText: isInviteForce ? appLocalizations.pleaseEnterInviteCode : appLocalizations.inviteCodeOptional,
+                              labelText: isInviteForce 
+                                  ? '${appLocalizations.xboardInviteCode} *' 
+                                  : appLocalizations.inviteCodeOptional,
+                              hintText: isInviteForce 
+                                  ? appLocalizations.pleaseEnterInviteCode 
+                                  : appLocalizations.pleaseEnterInviteCode,
                               prefixIcon: Icons.card_giftcard_outlined,
                               enabled: true,
                             );
@@ -338,7 +378,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                           ),
                           error: (_, __) => XBInputField(
                             controller: _inviteCodeController,
-                            labelText: appLocalizations.xboardInviteCode,
+                            labelText: appLocalizations.inviteCodeOptional,
                             hintText: appLocalizations.pleaseEnterInviteCode,
                             prefixIcon: Icons.card_giftcard_outlined,
                             enabled: true,

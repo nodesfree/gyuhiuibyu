@@ -206,7 +206,7 @@ class XBoardSDK {
       return null;
     } catch (e) {
       XBoardLogger.error('[SDK] 注册失败', e);
-      return null;
+      rethrow; // 重新抛出异常以便上层获取详细错误信息
     }
   }
 

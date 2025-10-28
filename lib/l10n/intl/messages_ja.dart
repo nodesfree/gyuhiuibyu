@@ -1087,6 +1087,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "不明なエラー、再試行してください",
     ),
     "xboardUnknownUser": MessageLookupByLibrary.simpleMessage("不明なユーザー"),
+    "xboardUnlimited": MessageLookupByLibrary.simpleMessage("無制限"),
     "xboardUnselected": MessageLookupByLibrary.simpleMessage("未選択"),
     "xboardUnsupportedCouponType": MessageLookupByLibrary.simpleMessage(
       "サポートされていないクーポンタイプ",

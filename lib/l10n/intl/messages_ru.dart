@@ -1447,6 +1447,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardUnknownUser": MessageLookupByLibrary.simpleMessage(
       "Неизвестный пользователь",
     ),
+    "xboardUnlimited": MessageLookupByLibrary.simpleMessage("Неограниченно"),
     "xboardUnselected": MessageLookupByLibrary.simpleMessage("Не выбрано"),
     "xboardUnsupportedCouponType": MessageLookupByLibrary.simpleMessage(
       "Неподдерживаемый тип купона",

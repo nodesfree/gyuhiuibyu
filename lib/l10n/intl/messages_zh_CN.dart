@@ -1139,6 +1139,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "xboardUnknownErrorRetry": MessageLookupByLibrary.simpleMessage("未知错误，请重试"),
     "xboardUnknownUser": MessageLookupByLibrary.simpleMessage("未知用户"),
+    "xboardUnlimited": MessageLookupByLibrary.simpleMessage("不限速"),
     "xboardUnselected": MessageLookupByLibrary.simpleMessage("未选择"),
     "xboardUnsupportedCouponType": MessageLookupByLibrary.simpleMessage(
       "不支持的优惠券类型",

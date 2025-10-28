@@ -1659,6 +1659,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Unknown error, please retry",
     ),
     "xboardUnknownUser": MessageLookupByLibrary.simpleMessage("Unknown User"),
+    "xboardUnlimited": MessageLookupByLibrary.simpleMessage("Unlimited"),
     "xboardUnselected": MessageLookupByLibrary.simpleMessage("Unselected"),
     "xboardUnsupportedCouponType": MessageLookupByLibrary.simpleMessage(
       "Unsupported coupon type",

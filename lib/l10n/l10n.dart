@@ -4299,6 +4299,16 @@ class AppLocalizations {
     return Intl.message('Speed', name: 'xboardSpeedLimit', desc: '', args: []);
   }
 
+  /// `Unlimited`
+  String get xboardUnlimited {
+    return Intl.message(
+      'Unlimited',
+      name: 'xboardUnlimited',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Confirm purchase`
   String get xboardConfirmPurchase {
     return Intl.message(

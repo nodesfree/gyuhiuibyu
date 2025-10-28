@@ -539,6 +539,7 @@
   "xboardPurchaseSubscription": "Purchase subscription",
   "xboardTraffic": "Traffic",
   "xboardSpeedLimit": "Speed",
+  "xboardUnlimited": "Unlimited",
   "xboardProcessing": "Processing...",
   "xboardConfirmPurchase": "Confirm purchase",
   "xboardAutoOpeningPaymentPage": "Auto-opening payment page, please return to app after payment",

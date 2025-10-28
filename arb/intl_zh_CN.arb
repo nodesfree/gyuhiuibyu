@@ -542,6 +542,7 @@
   "xboardPurchaseSubscription": "购买套餐",
   "xboardTraffic": "流量",
   "xboardSpeedLimit": "限速",
+  "xboardUnlimited": "不限速",
   "xboardProcessing": "处理中...",
   "xboardConfirmPurchase": "确认购买",
   "xboardAutoOpeningPaymentPage": "正在自动打开支付页面，完成支付后请返回应用",

@@ -538,6 +538,7 @@
   "xboardPurchaseSubscription": "サブスクリプション購入",
   "xboardTraffic": "トラフィック",
   "xboardSpeedLimit": "速度制限",
+  "xboardUnlimited": "無制限",
   "xboardProcessing": "処理中...",
   "xboardConfirmPurchase": "購入を確認",
   "xboardAutoOpeningPaymentPage": "支払いページを自動的に開いています。支払い完了後はアプリに戻ってください",

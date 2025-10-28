@@ -48,9 +48,11 @@ class _PlansViewState extends ConsumerState<PlansView> {
     final lowestPrice = prices.reduce((a, b) => a < b ? a : b);
     return _formatPrice(lowestPrice);
   }
-  int? _getSpeedLimitText(PlanData plan) {
-    // 直接使用PlanData模型中的formattedSpeedLimit方法
-    return plan.speedLimit;
+  String _getSpeedLimitText(PlanData plan) {
+    if (plan.speedLimit == null) {
+      return AppLocalizations.of(context).xboardUnlimited; // 不限速
+    }
+    return '${plan.speedLimit} Mbps';
   }
   Widget _buildPlanCard(PlanData plan) {
     final screenWidth = MediaQuery.of(context).size.width;

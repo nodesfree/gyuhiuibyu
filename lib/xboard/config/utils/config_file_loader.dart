@@ -107,7 +107,7 @@ class ConfigFileLoader {
   /// 解析订阅设置
   static SubscriptionSettings _parseSubscriptionSettings(Map<String, dynamic> json) {
     return SubscriptionSettings(
-      preferEncrypt: json['prefer_encrypt'] as bool? ?? true,
+      preferEncrypt: json['prefer_encrypt'] as bool? ?? false,
     );
   }
   
@@ -145,7 +145,7 @@ extension ConfigFileLoaderHelper on ConfigFileLoader {
       final config = await ConfigFileLoader.loadExtendedConfig();
       final subscriptionJson = config['subscription'] as Map<String, dynamic>? ?? {};
       return SubscriptionSettings(
-        preferEncrypt: subscriptionJson['prefer_encrypt'] as bool? ?? true,
+        preferEncrypt: subscriptionJson['prefer_encrypt'] as bool? ?? false,
       );
     } catch (e) {
       return const SubscriptionSettings();

@@ -203,7 +203,7 @@ class SubscriptionSettings {
   final bool preferEncrypt;
 
   const SubscriptionSettings({
-    this.preferEncrypt = true,
+    this.preferEncrypt = false,
   });
 
   /// 是否启用竞速（自动跟随加密选项）
@@ -211,7 +211,7 @@ class SubscriptionSettings {
 
   factory SubscriptionSettings.fromJson(Map<String, dynamic> json) {
     return SubscriptionSettings(
-      preferEncrypt: json['preferEncrypt'] as bool? ?? json['prefer_encrypt'] as bool? ?? true,
+      preferEncrypt: json['preferEncrypt'] as bool? ?? json['prefer_encrypt'] as bool? ?? false,
     );
   }
 

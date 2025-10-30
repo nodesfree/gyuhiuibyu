@@ -31,6 +31,13 @@ class XBoardSubscriptionNotifier extends Notifier<List<PlanData>> {
       commonPrint.log('开始加载套餐列表...');
       final plans = await XBoardSDK.getPlans();
       final visiblePlans = plans.where((plan) => plan.isVisible).toList();
+      // 按 sort 字段排序（升序），null 值排在最后
+      visiblePlans.sort((a, b) {
+        if (a.sort == null && b.sort == null) return 0;
+        if (a.sort == null) return 1;
+        if (b.sort == null) return -1;
+        return a.sort!.compareTo(b.sort!);
+      });
       state = visiblePlans;
       ref.read(userUIStateProvider.notifier).state = UIState(
         isLoading: false,

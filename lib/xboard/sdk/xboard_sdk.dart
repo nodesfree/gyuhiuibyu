@@ -502,17 +502,17 @@ class XBoardSDK {
   // ========== 优惠券相关 ==========
 
   /// 验证优惠券
-  static Future<bool> checkCoupon({
+  static Future<sdk.CouponData?> checkCoupon({
     required String code,
     required int planId,
   }) async {
     try {
       final result = await _sdk.coupon.checkCoupon(code, planId);
-      // CouponResponse包含验证结果，假设有isValid字段或通过成功状态判断
-      return result.data != null;
+      // 返回完整的优惠券数据，包含折扣类型和金额
+      return result.data;
     } catch (e) {
       XBoardLogger.error('[SDK] 验证优惠券失败', e);
-      return false;
+      return null;
     }
   }
 

@@ -531,21 +531,37 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     }
     try {
       final couponCode = _couponController.text.trim();
-      final isValid = await XBoardSDK.checkCoupon(
+      final couponData = await XBoardSDK.checkCoupon(
         code: couponCode,
         planId: widget.plan.id,
       );
-      if (isValid) {
-        // TODO: 需要从SDK获取完整的优惠券数据以计算折扣
-        // 目前API只返回是否有效，无法计算具体折扣金额
-        // 暂时只标记为有效，不计算折扣
+      if (couponData != null) {
+        // 获取当前选择的价格
+        final currentPrice = _getCurrentPrice();
+        
+        // 根据优惠券类型计算折扣金额
+        double discountAmount = 0.0;
+        if (couponData.type == 1) {
+          // 金额折扣：value 是分，需要转换为元
+          discountAmount = (couponData.value ?? 0) / 100.0;
+        } else if (couponData.type == 2) {
+          // 百分比折扣：value 是百分比 (如 20 表示 20%)
+          discountAmount = currentPrice * (couponData.value ?? 0) / 100.0;
+        }
+        
+        // 确保折扣不超过原价
+        if (discountAmount > currentPrice) {
+          discountAmount = currentPrice;
+        }
+        
+        final finalPrice = currentPrice - discountAmount;
+        
         if (mounted) {
           setState(() {
             _isCouponValid = true;
             _couponCode = couponCode;
-            // 无法计算折扣金额，暂时设为null
-            _discountAmount = null;
-            _finalPrice = null;
+            _discountAmount = discountAmount;
+            _finalPrice = finalPrice > 0 ? finalPrice : 0;
             _couponErrorMessage = null;
           });
         }
@@ -578,7 +594,6 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       }
     }
   }
-  // ignore: unused_element
   double _getCurrentPrice() {
     if (_selectedPeriod == null) return 0.0;
     final periods = _getAvailablePeriods(context);
@@ -640,7 +655,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                if (_isCouponValid == true) ...[
+                if (_isCouponValid == true && _discountAmount != null) ...[
                   const Spacer(),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -655,7 +670,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
                         Icon(Icons.check_circle, color: Colors.green.shade700, size: 16),
                         const SizedBox(width: 4),
                         Text(
-                          '-¥${_discountAmount?.toStringAsFixed(2)}',
+                          '-¥${_discountAmount!.toStringAsFixed(2)}',
                           style: TextStyle(
                             color: Colors.green.shade700,
                             fontSize: 12,

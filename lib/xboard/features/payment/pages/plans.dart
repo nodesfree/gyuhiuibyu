@@ -166,8 +166,12 @@ class _PlansViewState extends ConsumerState<PlansView> {
         _selectedPlan = plan;
       });
     } else {
-      // 移动端：全屏导航
-      context.push('/plans/purchase', extra: plan);
+      // 移动端：使用 Navigator.push 导航，自动有返回按钮
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => PlanPurchasePage(plan: plan),
+        ),
+      );
     }
   }
   @override
@@ -176,10 +180,25 @@ class _PlansViewState extends ConsumerState<PlansView> {
     final isDesktop = screenWidth > 768;
     
     return Scaffold(
-      appBar: isDesktop ? null : AppBar(
-        title: Text(appLocalizations.xboardPlanInfo),
-        automaticallyImplyLeading: false,
-      ),
+      appBar: _selectedPlan != null && isDesktop
+          // 桌面端购买页面：显示返回按钮的 AppBar
+          ? AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: _backToPlans,
+                tooltip: '返回',
+              ),
+              title: Text(appLocalizations.xboardPurchaseSubscription),
+              elevation: 0,
+              scrolledUnderElevation: 1,
+            )
+          // 套餐列表：移动端才显示 AppBar
+          : isDesktop
+              ? null
+              : AppBar(
+                  title: Text(appLocalizations.xboardPlanInfo),
+                  automaticallyImplyLeading: false,
+                ),
       body: isDesktop && _selectedPlan != null
           // 桌面端：显示购买页面（嵌入模式，无 Scaffold）
           ? PlanPurchasePage(

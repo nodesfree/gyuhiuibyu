@@ -516,32 +516,6 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-              // 桌面端嵌入模式：显示返回按钮
-              if (isDesktop && widget.embedded && widget.onBack != null) ...[
-                InkWell(
-                  onTap: widget.onBack,
-                  borderRadius: BorderRadius.circular(8),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.arrow_back, size: 20, color: Colors.blue.shade700),
-                        const SizedBox(width: 6),
-                        Text(
-                          '返回套餐列表',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.blue.shade700,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-              ],
               // 套餐信息卡片
               PlanHeaderCard(plan: widget.plan),
               SizedBox(height: isDesktop ? 12 : 20),

@@ -54,6 +54,7 @@ dependencies:
   flutter_riverpod: ^2.6.1
   riverpod_annotation: ^2.6.1
   riverpod: ^2.6.1
+  go_router: ^14.6.2
   material_color_utilities: ^0.11.1
   flutter_js:
     git:

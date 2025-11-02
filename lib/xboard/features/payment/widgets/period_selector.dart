@@ -25,15 +25,17 @@ class PeriodSelector extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    final isDesktop = MediaQuery.of(context).size.width > 600;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 12),
+          padding: EdgeInsets.only(left: 4, bottom: isDesktop ? 8 : 12),
           child: Text(
             AppLocalizations.of(context).xboardSelectPaymentPeriod,
             style: TextStyle(
-              fontSize: 15,
+              fontSize: isDesktop ? 14 : 15,
               fontWeight: FontWeight.w600,
               color: Colors.grey.shade700,
             ),

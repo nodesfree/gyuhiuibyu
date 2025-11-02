@@ -20,10 +20,14 @@ import '../utils/price_calculator.dart';
 /// 套餐购买页面
 class PlanPurchasePage extends ConsumerStatefulWidget {
   final PlanData plan;
+  final bool embedded; // 是否为嵌入模式（桌面端页面内切换时使用）
+  final VoidCallback? onBack; // 返回回调
 
   const PlanPurchasePage({
     super.key,
     required this.plan,
+    this.embedded = false,
+    this.onBack,
   });
 
   @override
@@ -502,117 +506,151 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     final currentPrice = _getCurrentPrice();
     final isDesktop = MediaQuery.of(context).size.width > 600;
 
+    final content = Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: isDesktop ? 700 : double.infinity,
+        ),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(isDesktop ? 16 : 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 桌面端嵌入模式：显示返回按钮
+              if (isDesktop && widget.embedded && widget.onBack != null) ...[
+                InkWell(
+                  onTap: widget.onBack,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.arrow_back, size: 20, color: Colors.blue.shade700),
+                        const SizedBox(width: 6),
+                        Text(
+                          '返回套餐列表',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.blue.shade700,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+              // 套餐信息卡片
+              PlanHeaderCard(plan: widget.plan),
+              SizedBox(height: isDesktop ? 12 : 20),
+
+              // 周期选择器
+              PeriodSelector(
+                periods: periods,
+                selectedPeriod: _selectedPeriod,
+                onPeriodSelected: (period) {
+                          setState(() {
+                    _selectedPeriod = period;
+                    if (_couponCode != null) {
+                      _recalculateDiscount();
+                    }
+                  });
+                },
+                couponType: _couponType,
+                couponValue: _couponValue,
+              ),
+              SizedBox(height: isDesktop ? 12 : 20),
+
+              // 优惠券输入
+              CouponInputSection(
+                controller: _couponController,
+                isValidating: _isCouponValidating,
+                isValid: _isCouponValid,
+                errorMessage: _couponErrorMessage,
+                discountAmount: _discountAmount,
+                onValidate: _validateCoupon,
+                onChanged: _clearCoupon,
+              ),
+              SizedBox(height: isDesktop ? 12 : 20),
+
+              // 价格汇总
+              if (_selectedPeriod != null)
+                PriceSummaryCard(
+                  originalPrice: currentPrice,
+                  finalPrice: _finalPrice,
+                  discountAmount: _discountAmount,
+                  userBalance: _userBalance,
+                ),
+              SizedBox(height: isDesktop ? 12 : 20),
+
+              // 确认购买按钮
+            SizedBox(
+              width: double.infinity,
+                height: isDesktop ? 48 : 54,
+              child: Consumer(
+                builder: (context, ref, child) {
+                  final paymentState = ref.watch(userUIStateProvider);
+                  return ElevatedButton(
+                      onPressed: paymentState.isLoading ? null : _proceedToPurchase,
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade600,
+                      foregroundColor: Colors.white,
+                        elevation: 0,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: paymentState.isLoading
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  AppLocalizations.of(context).xboardProcessing,
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                            ],
+                          )
+                        : Text(
+                            AppLocalizations.of(context).xboardConfirmPurchase,
+                            style: const TextStyle(
+                                fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                            ),
+                          ),
+                  );
+                },
+              ),
+            ),
+              SizedBox(height: isDesktop ? 8 : 16),
+          ],
+          ),
+        ),
+      ),
+    );
+
+    // 如果是嵌入模式（桌面端页面内切换），直接返回内容
+    if (widget.embedded) {
+      return content;
+    }
+
+    // 否则包装在 Scaffold 中（移动端全屏或独立页面）
     return Scaffold(
       appBar: isDesktop ? null : AppBar(
         title: Text(AppLocalizations.of(context).xboardPurchaseSubscription),
       ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: isDesktop ? 600 : double.infinity,
-          ),
-          child: SingleChildScrollView(
-            padding: EdgeInsets.all(isDesktop ? 24 : 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 套餐信息卡片
-                PlanHeaderCard(plan: widget.plan),
-                const SizedBox(height: 20),
-
-                // 周期选择器
-                PeriodSelector(
-                  periods: periods,
-                  selectedPeriod: _selectedPeriod,
-                  onPeriodSelected: (period) {
-                    setState(() {
-                      _selectedPeriod = period;
-                      if (_couponCode != null) {
-                        _recalculateDiscount();
-                      }
-                    });
-                  },
-                  couponType: _couponType,
-                  couponValue: _couponValue,
-                ),
-                const SizedBox(height: 20),
-
-                // 优惠券输入
-                CouponInputSection(
-                  controller: _couponController,
-                  isValidating: _isCouponValidating,
-                  isValid: _isCouponValid,
-                  errorMessage: _couponErrorMessage,
-                  discountAmount: _discountAmount,
-                  onValidate: _validateCoupon,
-                  onChanged: _clearCoupon,
-                ),
-                const SizedBox(height: 20),
-
-                // 价格汇总
-                if (_selectedPeriod != null)
-                  PriceSummaryCard(
-                    originalPrice: currentPrice,
-                    finalPrice: _finalPrice,
-                    discountAmount: _discountAmount,
-                    userBalance: _userBalance,
-                  ),
-                const SizedBox(height: 20),
-
-                // 确认购买按钮
-                SizedBox(
-                  width: double.infinity,
-                  height: 54,
-                  child: Consumer(
-                    builder: (context, ref, child) {
-                      final paymentState = ref.watch(userUIStateProvider);
-                      return ElevatedButton(
-                        onPressed: paymentState.isLoading ? null : _proceedToPurchase,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade600,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        child: paymentState.isLoading
-                            ? Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    AppLocalizations.of(context).xboardProcessing,
-                                    style: const TextStyle(fontSize: 16),
-                                  ),
-                                ],
-                              )
-                            : Text(
-                                AppLocalizations.of(context).xboardConfirmPurchase,
-                                style: const TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
-          ),
-        ),
-      ),
+      body: content,
     );
   }
 } 

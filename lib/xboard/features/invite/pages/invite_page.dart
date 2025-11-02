@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/enum/enum.dart';
-import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/xboard/features/invite/providers/invite_provider.dart';
 import 'package:fl_clash/xboard/features/invite/widgets/user_menu_widget.dart';
 import 'package:fl_clash/xboard/features/invite/widgets/error_card.dart';
@@ -19,14 +17,7 @@ class InvitePage extends ConsumerStatefulWidget {
   ConsumerState<InvitePage> createState() => _InvitePageState();
 }
 
-class _InvitePageState extends ConsumerState<InvitePage> with PageMixin {
-  @override
-  List<Widget> get actions {
-    return [
-      const UserMenuWidget(),
-    ];
-  }
-
+class _InvitePageState extends ConsumerState<InvitePage> {
   @override
   void initState() {
     super.initState();
@@ -41,20 +32,21 @@ class _InvitePageState extends ConsumerState<InvitePage> with PageMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer(
-      builder: (_, ref, __) {
-        ref.listenManual(
-          isCurrentPageProvider(PageLabel.invite),
-          (prev, next) {
-            if (prev != next && next == true) {
-              initPageState();
-            }
-          },
-          fireImmediately: true,
-        );
-        
-        return Scaffold(
-          body: RefreshIndicator(
+    final appLocalizations = AppLocalizations.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktop = screenWidth > 600;
+    
+    return Scaffold(
+      appBar: isDesktop ? null : AppBar(
+        title: Text(appLocalizations.invite),
+        automaticallyImplyLeading: false,
+        actions: const [
+          UserMenuWidget(),
+        ],
+      ),
+      body: Consumer(
+        builder: (_, ref, __) {
+          return RefreshIndicator(
             onRefresh: () => ref.read(inviteProvider.notifier).refresh(),
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -80,9 +72,9 @@ class _InvitePageState extends ConsumerState<InvitePage> with PageMixin {
                 ],
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

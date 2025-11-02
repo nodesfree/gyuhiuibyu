@@ -5,6 +5,8 @@ import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:fl_clash/l10n/l10n.dart';
 
 import 'package:fl_clash/xboard/features/shared/shared.dart';
 import 'package:fl_clash/xboard/features/latency/services/auto_latency_service.dart';
@@ -20,86 +22,7 @@ class XBoardHomePage extends ConsumerStatefulWidget {
   @override
   ConsumerState<XBoardHomePage> createState() => _XBoardHomePageState();
 }
-class _XBoardHomePageState extends ConsumerState<XBoardHomePage> with PageMixin {
-  @override
-  Widget? get leading {
-    // 桌面端不显示联系客服按钮，因为已经在侧边栏中了
-    if (system.isDesktop) {
-      return null;
-    }
-
-    // 使用 Consumer 来监听未读消息数
-    return Consumer(
-      builder: (context, ref, child) {
-        final chatState = ref.watch(chatProvider);
-        final unreadCount = chatState.unreadCount;
-
-        return TextButton(
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const OnlineSupportPage(),
-              ),
-            );
-          },
-          style: TextButton.styleFrom(
-            padding: EdgeInsets.zero,
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            overlayColor: Colors.transparent,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              BadgeIcon(
-                icon: Icon(
-                  Icons.support_agent,
-                  size: 16,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                count: unreadCount,
-                badgeSize: 14,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                appLocalizations.contactSupport,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  @override
-  List<Widget> get actions {
-    if (system.isDesktop) {
-      return [];
-    }
-    return [
-      TextButton.icon(
-        icon: const Icon(Icons.card_giftcard, size: 20),
-        label: Text(appLocalizations.xboardPlanInfo),
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => const PlansView(),
-            ),
-          );
-        },
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          minimumSize: Size.zero,
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-      ),
-    ];
-  }
+class _XBoardHomePageState extends ConsumerState<XBoardHomePage> {
   bool _hasInitialized = false;
   bool _hasStartedLatencyTesting = false;
   @override
@@ -148,20 +71,32 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage> with PageMixin 
   }
   @override
   Widget build(BuildContext context) {
-    return Consumer(
-      builder: (_, ref, __) {
-        ref.listenManual(
-          isCurrentPageProvider(PageLabel.xboard),
-          (prev, next) {
-            if (prev != next && next == true) {
-              initPageState();
-            }
-          },
-          fireImmediately: true,
-        );
-        
-        // 获取屏幕高度并计算自适应间距
-        final screenHeight = MediaQuery.of(context).size.height;
+    final appLocalizations = AppLocalizations.of(context);
+    // 获取屏幕宽度判断是否桌面端
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktop = screenWidth > 600;
+    
+    return Scaffold(
+      appBar: isDesktop ? null : AppBar(
+        title: const Text('首页'), // 临时硬编码，等国际化文件重新生成后改为 appLocalizations.xboardHome
+        automaticallyImplyLeading: false,
+        actions: [
+          TextButton.icon(
+            icon: const Icon(Icons.card_giftcard, size: 20),
+            label: Text(appLocalizations.xboardPlanInfo),
+            onPressed: () => context.go('/plans'),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          ),
+        ],
+      ),
+      body: Consumer(
+        builder: (_, ref, __) {
+          // 获取屏幕高度并计算自适应间距
+          final screenHeight = MediaQuery.of(context).size.height;
         final appBarHeight = kToolbarHeight;
         final statusBarHeight = MediaQuery.of(context).padding.top;
         final bottomNavHeight = 60.0; // 底部导航栏高度
@@ -241,7 +176,8 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage> with PageMixin 
             ),
           ),
         );
-      },
+        },
+      ),
     );
   }
   Widget _buildUsageSection() {

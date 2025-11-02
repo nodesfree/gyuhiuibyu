@@ -12,12 +12,15 @@ import 'package:fl_clash/state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'controller.dart';
 import 'pages/pages.dart';
 import 'xboard/xboard.dart';
 import 'package:fl_clash/xboard/sdk/xboard_sdk.dart';
 import 'package:fl_clash/xboard/features/online_support/providers/websocket_auto_connector.dart';
+import 'package:fl_clash/xboard/router/app_router.dart' as xboard_router;
+import 'package:fl_clash/xboard/features/auth/auth.dart';
 
 class Application extends ConsumerStatefulWidget {
   const Application({
@@ -237,9 +240,11 @@ class ApplicationState extends ConsumerState<Application> {
             final locale =
                 ref.watch(appSettingProvider.select((state) => state.locale));
             final themeProps = ref.watch(themeSettingProvider);
-            return MaterialApp(
+            final userState = ref.watch(xboardUserProvider);
+            
+            // 使用 go_router 的路由系统
+            return MaterialApp.router(
               debugShowCheckedModeBanner: false,
-              navigatorKey: globalState.navigatorKey,
               localizationsDelegates: const [
                 AppLocalizations.delegate,
                 GlobalMaterialLocalizations.delegate,
@@ -253,6 +258,7 @@ class ApplicationState extends ConsumerState<Application> {
                   ),
                 );
               },
+              routerConfig: _buildRouter(userState),
               scrollBehavior: BaseScrollBehavior(),
               title: appName,
               locale: utils.getLocaleForString(locale),
@@ -274,12 +280,41 @@ class ApplicationState extends ConsumerState<Application> {
                   primaryColor: themeProps.primaryColor,
                 ).toPureBlack(themeProps.pureBlack),
               ),
-              home: child,
             );
           },
-          child: const _AppHomeRouter(),
         ),
       ),
+    );
+  }
+
+  // 构建带认证重定向的路由器
+  GoRouter _buildRouter(UserAuthState userState) {
+    return GoRouter(
+      navigatorKey: globalState.navigatorKey,
+      initialLocation: '/',
+      routes: xboard_router.routes,
+      redirect: (context, state) {
+        final isAuthenticated = userState.isAuthenticated;
+        final isInitialized = userState.isInitialized;
+        final isLoginPage = state.uri.path == '/login';
+
+        // 初始化中，显示加载页面
+        if (!isInitialized) {
+          return '/loading';
+        }
+
+        // 未认证且不在登录页，跳转到登录页
+        if (!isAuthenticated && !isLoginPage) {
+          return '/login';
+        }
+
+        // 已认证且在登录页，跳转到首页
+        if (isAuthenticated && isLoginPage) {
+          return '/';
+        }
+
+        return null; // 不重定向
+      },
     );
   }
 
@@ -309,34 +344,5 @@ class ApplicationState extends ConsumerState<Application> {
   }
 }
 
-/// 应用主页面路由器 - 根据认证状态自动选择页面
-class _AppHomeRouter extends ConsumerStatefulWidget {
-  const _AppHomeRouter();
-  
-  @override
-  ConsumerState<_AppHomeRouter> createState() => _AppHomeRouterState();
-}
-
-class _AppHomeRouterState extends ConsumerState<_AppHomeRouter> {
-  @override
-  Widget build(BuildContext context) {
-    final userState = ref.watch(xboardUserProvider);
-    
-    debugPrint('[_AppHomeRouter] build called. isAuthenticated: ${userState.isAuthenticated}, isInitialized: ${userState.isInitialized}');
-    
-    if (userState.isAuthenticated) {
-      debugPrint('[_AppHomeRouter] 状态: 已认证，跳转到主页面');
-      return const HomePage();
-    } else if (userState.isInitialized) {
-      debugPrint('[_AppHomeRouter] 状态: 未认证但已初始化，显示登录页面');
-      return const LoginPage();
-    } else {
-      debugPrint('[_AppHomeRouter] 状态: 初始化中，显示加载页面');
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-  }
-}
+// ✅ 旧的 _AppHomeRouter 已被 go_router 替代
+// go_router 通过 redirect 函数自动处理认证重定向

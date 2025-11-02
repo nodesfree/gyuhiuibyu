@@ -8,6 +8,8 @@
   "profiles": "配置",
   "tools": "工具",
   "invite": "邀请",
+  "xboard": "首页",
+  "xboardHome": "首页",
   "userCenter": "个人中心",
   "logs": "日志",
   "logsDesc": "日志捕获记录",

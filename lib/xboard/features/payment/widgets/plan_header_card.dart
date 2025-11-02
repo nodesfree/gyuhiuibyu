@@ -13,8 +13,9 @@ class PlanHeaderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = MediaQuery.of(context).size.width > 600;
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: EdgeInsets.all(isDesktop ? 12 : 14),
       decoration: BoxDecoration(
         color: Colors.blue.shade600,
         borderRadius: BorderRadius.circular(12),
@@ -57,7 +58,7 @@ class PlanHeaderCard extends StatelessWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: isDesktop ? 6 : 8),
                 // 第二行：流量 + 速率（居中）
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,

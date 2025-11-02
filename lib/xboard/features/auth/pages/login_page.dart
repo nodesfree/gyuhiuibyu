@@ -5,6 +5,7 @@ import 'package:fl_clash/xboard/features/domain_status/domain_status.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'register_page.dart';
 import 'forgot_password_page.dart';
 import 'package:fl_clash/xboard/features/shared/shared.dart';
@@ -129,16 +130,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
   }
   void _navigateToRegister() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const RegisterPage()),
-    );
+    await context.push('/register');
     _loadSavedCredentials();
     _checkDomainStatus();
   }
   void _navigateToForgotPassword() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
-    );
+    await context.push('/forgot-password');
     _checkDomainStatus();
   }
     @override

@@ -21,9 +21,10 @@ class PriceSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final displayFinalPrice = finalPrice ?? originalPrice;
     final hasDiscount = discountAmount != null && discountAmount! > 0;
+    final isDesktop = MediaQuery.of(context).size.width > 600;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isDesktop ? 14 : 16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [Colors.indigo.shade50, Colors.blue.shade50],
@@ -38,7 +39,7 @@ class PriceSummaryCard extends StatelessWidget {
           // 账户余额（如果有）
           if (userBalance != null && userBalance! > 0) ...[
             _BalanceRow(balance: userBalance!),
-            Divider(height: 24, color: Colors.blue.shade200),
+            Divider(height: isDesktop ? 16 : 24, color: Colors.blue.shade200),
           ],
 
           // 原价和优惠（如果有折扣）
@@ -48,13 +49,13 @@ class PriceSummaryCard extends StatelessWidget {
               price: originalPrice,
               isStrikethrough: true,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: isDesktop ? 6 : 8),
             _PriceRow(
               label: '优惠',
               price: discountAmount!,
               isDiscount: true,
             ),
-            Divider(height: 24, color: Colors.blue.shade200),
+            Divider(height: isDesktop ? 16 : 24, color: Colors.blue.shade200),
           ],
 
           // 实付金额

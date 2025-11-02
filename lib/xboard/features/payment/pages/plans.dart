@@ -7,6 +7,7 @@ import 'plan_purchase_page.dart';
 import '../widgets/plan_description_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 class PlansView extends ConsumerStatefulWidget {
   const PlansView({super.key});
   @override
@@ -147,11 +148,8 @@ class _PlansViewState extends ConsumerState<PlansView> {
     );
   }
   void _navigateToPurchase(PlanData plan) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => PlanPurchasePage(plan: plan),
-      ),
-    );
+    // 使用 go_router 导航，传递 plan 对象
+    context.push('/plans/purchase', extra: plan);
   }
   @override
   Widget build(BuildContext context) {
@@ -160,6 +158,7 @@ class _PlansViewState extends ConsumerState<PlansView> {
     return Scaffold(
       appBar: isDesktop ? null : AppBar(
         title: Text(appLocalizations.xboardPlanInfo),
+        automaticallyImplyLeading: false,
       ),
       body: RefreshIndicator(
         onRefresh: _refreshPlans,

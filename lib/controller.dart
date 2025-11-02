@@ -323,7 +323,7 @@ class AppController {
 
   Future _applyProfile() async {
     await clashCore.requestGc();
-    await setupClashConfig();
+    await _setupClashConfig();
     await updateGroups();
     await updateProviders();
   }

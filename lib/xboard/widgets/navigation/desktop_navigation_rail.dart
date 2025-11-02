@@ -1,5 +1,6 @@
 import 'package:fl_clash/xboard/features/online_support/providers/chat_provider.dart';
 import 'package:fl_clash/xboard/features/shared/shared.dart';
+import 'package:fl_clash/xboard/features/invite/widgets/user_menu_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -141,17 +142,7 @@ class DesktopNavigationRail extends ConsumerWidget {
         const SizedBox(height: 8),
         _buildDivider(colorScheme),
         const SizedBox(height: 16),
-        IconButton(
-          onPressed: () {
-            // TODO: 设置功能
-          },
-          icon: Icon(
-            Icons.settings_outlined,
-            size: 22,
-            color: colorScheme.onSurfaceVariant,
-          ),
-          tooltip: '设置',
-        ),
+        const UserMenuWidget(),
         const SizedBox(height: 16),
       ],
     );

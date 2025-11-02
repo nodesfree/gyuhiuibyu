@@ -95,11 +95,13 @@ class XBoardProfileImportService {
     try {
       final profiles = globalState.config.profiles;
       final urlProfiles = profiles.where((profile) => profile.type == ProfileType.url).toList();
+      
       for (final profile in urlProfiles) {
         ProfileLogger.debug('删除旧的URL配置: ${profile.label ?? profile.id}');
         _ref.read(profilesProvider.notifier).deleteProfileById(profile.id);
         _clearProfileEffect(profile.id);
       }
+      
       ProfileLogger.info('清理了 ${urlProfiles.length} 个旧的URL配置');
     } catch (e) {
       ProfileLogger.warning('清理旧配置时出错', e);
@@ -273,6 +275,18 @@ class XBoardProfileImportService {
       final currentProfileIdNotifier = _ref.read(currentProfileIdProvider.notifier);
       currentProfileIdNotifier.value = profile.id;
       ProfileLogger.info('✅ 已设置为当前配置: ${profile.label ?? profile.id}');
+      
+      // 3. 使用 silence 模式直接应用配置（新路由系统中 homeScaffoldKey 不可用）
+      // needSetupProvider 的监听器会触发 handleChangeProfile，但因为 commonScaffoldState 
+      // 未 mounted 会失败，所以我们在这里手动用 silence 模式触发
+      ProfileLogger.info('📋 使用 silence 模式应用配置...');
+      try {
+        await globalState.appController.applyProfile(silence: true);
+        ProfileLogger.info('✅ 配置应用成功');
+      } catch (e) {
+        ProfileLogger.error('❌ 配置应用失败', e);
+        // 不抛出异常，因为配置已经保存了
+      }
       
       ProfileLogger.info('配置添加成功: ${profile.label ?? profile.id}');
     } catch (e) {

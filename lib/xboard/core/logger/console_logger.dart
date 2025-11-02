@@ -79,16 +79,16 @@ class ConsoleLogger implements LoggerInterface {
     // ignore: avoid_print
     print(buffer.toString());
 
-    // 输出错误信息
+    // 输出错误信息（保持格式一致）
     if (error != null) {
       // ignore: avoid_print
-      print('$_prefix[$level] Error: $error');
+      print('$prefix$timestamp$levelStr Error: $error$resetColor');
     }
 
-    // 输出堆栈跟踪
+    // 输出堆栈跟踪（保持格式一致）
     if (stackTrace != null) {
       // ignore: avoid_print
-      print('$_prefix[$level] StackTrace:\n$stackTrace');
+      print('$prefix$timestamp$levelStr StackTrace:\n$stackTrace$resetColor');
     }
   }
 

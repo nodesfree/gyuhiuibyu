@@ -14,6 +14,8 @@ class PlansView extends ConsumerStatefulWidget {
   ConsumerState<PlansView> createState() => _PlansViewState();
 }
 class _PlansViewState extends ConsumerState<PlansView> {
+  PlanData? _selectedPlan; // 桌面端选中的套餐
+  
   @override
   void initState() {
     super.initState();
@@ -22,9 +24,16 @@ class _PlansViewState extends ConsumerState<PlansView> {
       subscriptionNotifier.autoRefreshIfNeeded();
     });
   }
+  
   Future<void> _refreshPlans() async {
     final subscriptionNotifier = ref.read(xboardSubscriptionProvider.notifier);
     await subscriptionNotifier.refreshPlans();
+  }
+  
+  void _backToPlans() {
+    setState(() {
+      _selectedPlan = null;
+    });
   }
   String _formatPrice(double? price) {
     if (price == null) return '-';
@@ -148,22 +157,41 @@ class _PlansViewState extends ConsumerState<PlansView> {
     );
   }
   void _navigateToPurchase(PlanData plan) {
-    // 使用 go_router 导航，传递 plan 对象
-    context.push('/plans/purchase', extra: plan);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktop = screenWidth > 768;
+    
+    if (isDesktop) {
+      // 桌面端：内嵌显示
+      setState(() {
+        _selectedPlan = plan;
+      });
+    } else {
+      // 移动端：全屏导航
+      context.push('/plans/purchase', extra: plan);
+    }
   }
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth > 768;
+    
     return Scaffold(
       appBar: isDesktop ? null : AppBar(
         title: Text(appLocalizations.xboardPlanInfo),
         automaticallyImplyLeading: false,
       ),
-      body: RefreshIndicator(
-        onRefresh: _refreshPlans,
-        child: Consumer(
-          builder: (context, ref, child) {
+      body: isDesktop && _selectedPlan != null
+          // 桌面端：显示购买页面（嵌入模式，无 Scaffold）
+          ? PlanPurchasePage(
+              plan: _selectedPlan!,
+              embedded: true,
+              onBack: _backToPlans,
+            )
+          // 显示套餐列表
+          : RefreshIndicator(
+              onRefresh: _refreshPlans,
+              child: Consumer(
+                builder: (context, ref, child) {
             final plans = ref.watch(xboardSubscriptionProvider);
             final uiState = ref.watch(userUIStateProvider);
             if (uiState.isLoading) {

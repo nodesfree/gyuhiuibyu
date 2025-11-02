@@ -513,9 +513,9 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         ),
         child: SingleChildScrollView(
           padding: EdgeInsets.all(isDesktop ? 16 : 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
               // 桌面端嵌入模式：显示返回按钮
               if (isDesktop && widget.embedded && widget.onBack != null) ...[
                 InkWell(
@@ -640,12 +640,12 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       ),
     );
 
-    // 如果是嵌入模式（桌面端页面内切换），直接返回内容
+    // 桌面端嵌入模式：只返回内容（外层已有 Scaffold）
     if (widget.embedded) {
       return content;
     }
 
-    // 否则包装在 Scaffold 中（移动端全屏或独立页面）
+    // 移动端全屏或独立页面：带 AppBar 的 Scaffold
     return Scaffold(
       appBar: isDesktop ? null : AppBar(
         title: Text(AppLocalizations.of(context).xboardPurchaseSubscription),

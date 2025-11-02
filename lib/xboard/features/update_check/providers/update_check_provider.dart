@@ -15,11 +15,11 @@ class UpdateCheckNotifier extends StateNotifier<UpdateCheckState> {
   })  : _updateService = updateService,
         super(const UpdateCheckState());
   Future<void> initialize() async {
-    XBoardLogger.info('开始检查更新');
+    FeatureLogger.info('开始检查更新', null, 'update_check_provider.dart');
     await checkForUpdates();
   }
   Future<void> refresh() async {
-    XBoardLogger.info('刷新检查更新');
+    FeatureLogger.info('刷新检查更新', null, 'update_check_provider.dart');
     await checkForUpdates();
   }
   Future<void> checkForUpdates() async {
@@ -30,7 +30,7 @@ class UpdateCheckNotifier extends StateNotifier<UpdateCheckState> {
     );
     try {
       final currentVersion = await _updateService.getCurrentVersion();
-      XBoardLogger.info('当前版本: $currentVersion');
+      FeatureLogger.info('当前版本: $currentVersion', null, 'update_check_provider.dart');
       state = state.copyWith(currentVersion: currentVersion);
       final updateInfo = await _updateService.checkForUpdates();
       if (!mounted) return;
@@ -43,16 +43,16 @@ class UpdateCheckNotifier extends StateNotifier<UpdateCheckState> {
         forceUpdate: updateInfo["forceUpdate"] as bool? ?? false,
       );
       if (state.hasUpdate) {
-        XBoardLogger.info('发现新版本: ${state.latestVersion}');
+        FeatureLogger.info('发现新版本: ${state.latestVersion}', null, 'update_check_provider.dart');
         if (state.releaseNotes != null && state.releaseNotes!.isNotEmpty) {
-          // XBoardLogger.debug('发布说明: ${state.releaseNotes}');
+          // FeatureLogger.debug('发布说明: ${state.releaseNotes}', null, 'update_check_provider.dart');
         }
       } else {
-        XBoardLogger.info('已是最新版本');
+        FeatureLogger.info('已是最新版本', null, 'update_check_provider.dart');
       }
     } catch (e) {
       if (!mounted) return;
-      XBoardLogger.error('检查更新失败', e);
+      FeatureLogger.error('检查更新失败', e, 'update_check_provider.dart');
       state = state.copyWith(
         isChecking: false,
         error: e.toString(),

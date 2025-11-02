@@ -5,19 +5,23 @@ class ConfigLogger {
   static const String _module = 'Config';
 
   static void debug(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.debug('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.debug('$prefix $message', error);
   }
 
   static void info(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.info('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.info('$prefix $message', error);
   }
 
   static void warning(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.warning('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.warning('$prefix $message', error);
   }
 
   static void error(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.error('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.error('$prefix $message', error);
   }
 }
 
@@ -26,19 +30,23 @@ class AuthLogger {
   static const String _module = 'Auth';
 
   static void debug(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.debug('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.debug('$prefix $message', error);
   }
 
   static void info(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.info('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.info('$prefix $message', error);
   }
 
   static void warning(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.warning('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.warning('$prefix $message', error);
   }
 
   static void error(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.error('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.error('$prefix $message', error);
   }
 }
 
@@ -47,19 +55,23 @@ class ProfileLogger {
   static const String _module = 'Profile';
 
   static void debug(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.debug('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.debug('$prefix $message', error);
   }
 
   static void info(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.info('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.info('$prefix $message', error);
   }
 
   static void warning(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.warning('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.warning('$prefix $message', error);
   }
 
   static void error(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.error('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.error('$prefix $message', error);
   }
 }
 
@@ -68,19 +80,23 @@ class ServiceLogger {
   static const String _module = 'Service';
 
   static void debug(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.debug('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.debug('$prefix $message', error);
   }
 
   static void info(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.info('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.info('$prefix $message', error);
   }
 
   static void warning(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.warning('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.warning('$prefix $message', error);
   }
 
   static void error(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.error('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.error('$prefix $message', error);
   }
 }
 
@@ -89,19 +105,23 @@ class DomainServiceLogger {
   static const String _module = 'DomainService';
 
   static void debug(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.debug('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.debug('$prefix $message', error);
   }
 
   static void info(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.info('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.info('$prefix $message', error);
   }
 
   static void warning(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.warning('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.warning('$prefix $message', error);
   }
 
   static void error(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.error('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.error('$prefix $message', error);
   }
 }
 
@@ -110,19 +130,23 @@ class FeatureLogger {
   static const String _module = 'Feature';
 
   static void debug(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.debug('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.debug('$prefix $message', error);
   }
 
   static void info(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.info('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.info('$prefix $message', error);
   }
 
   static void warning(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.warning('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.warning('$prefix $message', error);
   }
 
   static void error(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.error('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.error('$prefix $message', error);
   }
 }
 
@@ -131,19 +155,23 @@ class SharedLogger {
   static const String _module = 'Shared';
 
   static void debug(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.debug('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.debug('$prefix $message', error);
   }
 
   static void info(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.info('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.info('$prefix $message', error);
   }
 
   static void warning(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.warning('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.warning('$prefix $message', error);
   }
 
   static void error(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.error('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.error('$prefix $message', error);
   }
 }
 
@@ -152,19 +180,23 @@ class NetworkLogger {
   static const String _module = 'Network';
 
   static void debug(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.debug('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.debug('$prefix $message', error);
   }
 
   static void info(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.info('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.info('$prefix $message', error);
   }
 
   static void warning(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.warning('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.warning('$prefix $message', error);
   }
 
   static void error(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.error('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.error('$prefix $message', error);
   }
 }
 
@@ -173,18 +205,22 @@ class SystemLogger {
   static const String _module = 'System';
 
   static void debug(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.debug('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.debug('$prefix $message', error);
   }
 
   static void info(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.info('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.info('$prefix $message', error);
   }
 
   static void warning(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.warning('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.warning('$prefix $message', error);
   }
 
   static void error(String message, [dynamic error, String? fileName]) {
-    XBoardLogger.error('[$_module] $message', error);
+    final prefix = fileName != null ? '[$fileName][$_module]' : '[$_module]';
+    XBoardLogger.error('$prefix $message', error);
   }
 }

@@ -11,6 +11,10 @@ import 'package:fl_clash/xboard/features/subscription/utils/utils.dart';
 import 'package:fl_clash/xboard/features/profile/services/profile_subscription_info_service.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/xboard/config/utils/config_file_loader.dart';
+
+// 初始化文件级日志器
+final _logger = FileLogger('profile_import_service.dart');
+
 final xboardProfileImportServiceProvider = Provider<XBoardProfileImportService>((ref) {
   return XBoardProfileImportService(ref);
 });
@@ -34,7 +38,7 @@ class XBoardProfileImportService {
     _isImporting = true;
     final stopwatch = Stopwatch()..start();
     try {
-      ProfileLogger.info('开始导入订阅配置: $url');
+      _logger.info('开始导入订阅配置: $url');
       onProgress?.call(ImportStatus.cleaning, 0.2, '清理旧的订阅配置');
       await _cleanOldUrlProfiles();
       onProgress?.call(ImportStatus.downloading, 0.6, '下载配置文件');
@@ -44,14 +48,14 @@ class XBoardProfileImportService {
       await _addProfile(profile);
       stopwatch.stop();
       onProgress?.call(ImportStatus.success, 1.0, '导入成功');
-      ProfileLogger.info('订阅配置导入成功，耗时: ${stopwatch.elapsedMilliseconds}ms');
+      _logger.info('订阅配置导入成功，耗时: ${stopwatch.elapsedMilliseconds}ms');
       return ImportResult.success(
         profile: profile,
         duration: stopwatch.elapsed,
       );
     } catch (e) {
       stopwatch.stop();
-      ProfileLogger.error('订阅配置导入失败', e);
+      _logger.error('订阅配置导入失败', e);
       final errorType = _classifyError(e);
       final userMessage = _getUserFriendlyErrorMessage(e, errorType);
       onProgress?.call(ImportStatus.failed, 0.0, userMessage);
@@ -70,7 +74,7 @@ class XBoardProfileImportService {
     int retries = maxRetries,
   }) async {
     for (int attempt = 1; attempt <= retries; attempt++) {
-      ProfileLogger.debug('导入尝试 $attempt/$retries');
+      _logger.debug('导入尝试 $attempt/$retries');
       final result = await importSubscription(url, onProgress: onProgress);
       if (result.isSuccess) {
         return result;
@@ -82,7 +86,7 @@ class XBoardProfileImportService {
       if (attempt == retries) {
         return result;
       }
-      ProfileLogger.debug('等待 ${retryDelay.inSeconds} 秒后重试');
+      _logger.debug('等待 ${retryDelay.inSeconds} 秒后重试');
       onProgress?.call(ImportStatus.downloading, 0.0, '第 $attempt 次尝试失败，等待重试...');
       await Future.delayed(retryDelay);
     }
@@ -97,52 +101,52 @@ class XBoardProfileImportService {
       final urlProfiles = profiles.where((profile) => profile.type == ProfileType.url).toList();
       
       for (final profile in urlProfiles) {
-        ProfileLogger.debug('删除旧的URL配置: ${profile.label ?? profile.id}');
+        _logger.debug('删除旧的URL配置: ${profile.label ?? profile.id}');
         _ref.read(profilesProvider.notifier).deleteProfileById(profile.id);
         _clearProfileEffect(profile.id);
       }
       
-      ProfileLogger.info('清理了 ${urlProfiles.length} 个旧的URL配置');
+      _logger.info('清理了 ${urlProfiles.length} 个旧的URL配置');
     } catch (e) {
-      ProfileLogger.warning('清理旧配置时出错', e);
+      _logger.warning('清理旧配置时出错', e);
       throw Exception('清理旧配置失败: $e');
     }
   }
   Future<Profile> _downloadAndValidateProfile(String url) async {
     try {
-      ProfileLogger.info('开始下载配置: $url');
+      _logger.info('开始下载配置: $url');
       
       // 先检查用户配置是否禁用了加密订阅
       final preferEncrypt = await ConfigFileLoaderHelper.getPreferEncrypt();
       
       if (!preferEncrypt) {
         // 用户明确禁用加密，直接使用标准下载方式
-        ProfileLogger.info('⚙️ 用户配置禁用加密订阅，使用标准下载方式');
+        _logger.info('⚙️ 用户配置禁用加密订阅，使用标准下载方式');
         final profile = await Profile.normal(url: url).update().timeout(
           downloadTimeout,
           onTimeout: () {
             throw TimeoutException('下载超时', downloadTimeout);
           },
         );
-        ProfileLogger.info('配置下载和验证成功: ${profile.label ?? profile.id}');
+        _logger.info('配置下载和验证成功: ${profile.label ?? profile.id}');
         return profile;
       }
       
       // 用户启用加密，检查URL是否需要使用加密订阅服务
       if (SubscriptionUrlHelper.shouldUseEncryptedService(url)) {
-        ProfileLogger.info('🔐 检测到加密订阅URL且用户启用加密，使用加密解密服务');
+        _logger.info('🔐 检测到加密订阅URL且用户启用加密，使用加密解密服务');
         return await _downloadEncryptedProfile(url);
       }
       
       // 使用标准方式下载
-      ProfileLogger.info('📄 使用标准方式下载普通订阅');
+      _logger.info('📄 使用标准方式下载普通订阅');
       final profile = await Profile.normal(url: url).update().timeout(
         downloadTimeout,
         onTimeout: () {
           throw TimeoutException('下载超时', downloadTimeout);
         },
       );
-      ProfileLogger.info('配置下载和验证成功: ${profile.label ?? profile.id}');
+      _logger.info('配置下载和验证成功: ${profile.label ?? profile.id}');
       return profile;
     } on TimeoutException catch (e) {
       throw Exception('下载超时: ${e.message}');
@@ -161,20 +165,20 @@ class XBoardProfileImportService {
   /// 下载加密的订阅配置
   Future<Profile> _downloadEncryptedProfile(String url) async {
     try {
-      ProfileLogger.info('📦 开始下载加密订阅配置流程');
-      ProfileLogger.debug('🔗 目标URL: $url');
+      _logger.info('📦 开始下载加密订阅配置流程');
+      _logger.debug('🔗 目标URL: $url');
 
       // 从本地配置读取订阅偏好设置（竞速自动跟随加密选项）
       final preferEncrypt = await ConfigFileLoaderHelper.getPreferEncrypt();
       
-      ProfileLogger.info('📝 本地配置: preferEncrypt=$preferEncrypt (竞速: ${preferEncrypt ? "启用" : "禁用"})');
+      _logger.info('📝 本地配置: preferEncrypt=$preferEncrypt (竞速: ${preferEncrypt ? "启用" : "禁用"})');
 
       // 优先从登录数据获取token，如果失败再从URL解析
       String? token;
       SubscriptionResult result;
       
       try {
-        ProfileLogger.debug('🔑 尝试从登录数据获取token');
+        _logger.debug('🔑 尝试从登录数据获取token');
         result = await EncryptedSubscriptionService.getSubscriptionSmart(
           null,
           preferEncrypt: preferEncrypt,
@@ -183,30 +187,30 @@ class XBoardProfileImportService {
 
         if (!result.success) {
           // 如果从登录数据获取失败，尝试从URL提取token
-          ProfileLogger.warning('⚠️ 从登录数据获取失败，尝试从URL提取token: ${result.error}');
+          _logger.warning('⚠️ 从登录数据获取失败，尝试从URL提取token: ${result.error}');
           token = SubscriptionUrlHelper.extractTokenFromUrl(url);
           if (token == null) {
             throw Exception('无法从URL中提取token且登录数据获取失败: $url');
           }
 
-          ProfileLogger.debug('🔑 从URL提取到token: ${token.substring(0, 8)}...');
+          _logger.debug('🔑 从URL提取到token: ${token.substring(0, 8)}...');
           result = await EncryptedSubscriptionService.getSubscriptionSmart(
             token,
             preferEncrypt: preferEncrypt,
             enableRace: preferEncrypt, // 竞速自动等于加密选项
           );
         } else {
-          ProfileLogger.info('✅ 成功从登录数据获取订阅');
+          _logger.info('✅ 成功从登录数据获取订阅');
         }
       } catch (e) {
         // 最后的fallback：从URL提取token
-        ProfileLogger.warning('⚠️ 登录方式失败，fallback到URL解析', e);
+        _logger.warning('⚠️ 登录方式失败，fallback到URL解析', e);
         token = SubscriptionUrlHelper.extractTokenFromUrl(url);
         if (token == null) {
           throw Exception('所有token获取方式都失败: $url');
         }
 
-        ProfileLogger.debug('🔄 Fallback - 从URL提取到token: ${token.substring(0, 8)}...');
+        _logger.debug('🔄 Fallback - 从URL提取到token: ${token.substring(0, 8)}...');
         result = await EncryptedSubscriptionService.getSubscriptionSmart(
           token,
           preferEncrypt: preferEncrypt,
@@ -218,13 +222,13 @@ class XBoardProfileImportService {
         throw Exception('加密订阅获取失败: ${result.error}');
       }
 
-      ProfileLogger.info('🎉 加密订阅获取成功！加密模式: ${result.encryptionUsed}');
+      _logger.info('🎉 加密订阅获取成功！加密模式: ${result.encryptionUsed}');
       if (result.keyUsed != null) {
-        ProfileLogger.debug('🔑 使用解密密钥: ${result.keyUsed?.substring(0, 8)}...');
+        _logger.debug('🔑 使用解密密钥: ${result.keyUsed?.substring(0, 8)}...');
       }
       
       // 验证解密后的配置内容
-      ProfileLogger.debug('📄 验证解密后的配置内容，长度: ${result.content!.length}');
+      _logger.debug('📄 验证解密后的配置内容，长度: ${result.content!.length}');
       if (result.content!.trim().isEmpty) {
         throw Exception('解密后的配置内容为空');
       }
@@ -232,36 +236,36 @@ class XBoardProfileImportService {
       // 记录配置内容的基本统计信息
       final lines = result.content!.split('\n');
       final nonEmptyLines = lines.where((line) => line.trim().isNotEmpty).length;
-      ProfileLogger.debug('📄 配置内容统计: 总行数 ${lines.length}, 非空行数 $nonEmptyLines');
+      _logger.debug('📄 配置内容统计: 总行数 ${lines.length}, 非空行数 $nonEmptyLines');
 
       // 移除冗余的格式检查，让ClashMeta核心进行权威验证
-      ProfileLogger.debug('⚡ 跳过客户端格式验证，将由ClashMeta核心进行权威验证');
+      _logger.debug('⚡ 跳过客户端格式验证，将由ClashMeta核心进行权威验证');
 
       // 创建Profile并保存解密的配置内容
-      ProfileLogger.debug('💾 开始保存解密的配置内容到Profile...');
+      _logger.debug('💾 开始保存解密的配置内容到Profile...');
       final profile = Profile.normal(url: url);
       final profileWithContent = await profile.saveFileWithString(result.content!);
-      ProfileLogger.info('✅ 配置内容已成功保存并通过ClashMeta核心验证');
+      _logger.info('✅ 配置内容已成功保存并通过ClashMeta核心验证');
       
       // 获取订阅信息并更新Profile
-      ProfileLogger.info('📊 开始获取加密订阅的订阅信息...');
+      _logger.info('📊 开始获取加密订阅的订阅信息...');
       final subscriptionInfo = await ProfileSubscriptionInfoService.instance.getSubscriptionInfo(
         subscriptionUserInfo: result.subscriptionUserInfo,
       );
-      ProfileLogger.info('📊 Profile订阅信息获取完成: upload=${subscriptionInfo.upload}, download=${subscriptionInfo.download}, total=${subscriptionInfo.total}');
+      _logger.info('📊 Profile订阅信息获取完成: upload=${subscriptionInfo.upload}, download=${subscriptionInfo.download}, total=${subscriptionInfo.total}');
 
       // 返回带有订阅信息的Profile
       final updatedProfile = profileWithContent.copyWith(
         subscriptionInfo: subscriptionInfo,
       );
 
-      ProfileLogger.info('🎉 加密配置验证和保存成功！最终Profile订阅信息: ${updatedProfile.subscriptionInfo}');
-      ProfileLogger.debug('✅ 完整的加密订阅处理流程已成功完成');
+      _logger.info('🎉 加密配置验证和保存成功！最终Profile订阅信息: ${updatedProfile.subscriptionInfo}');
+      _logger.debug('✅ 完整的加密订阅处理流程已成功完成');
       return updatedProfile;
       
     } catch (e) {
-      ProfileLogger.error('💥 加密配置下载失败', e);
-      ProfileLogger.debug('❌ 加密订阅处理流程异常终止');
+      _logger.error('💥 加密配置下载失败', e);
+      _logger.debug('❌ 加密订阅处理流程异常终止');
       throw Exception('加密订阅处理失败: $e');
     }
   }
@@ -274,21 +278,21 @@ class XBoardProfileImportService {
       // 2. 强制设置为当前配置（订阅导入是用户主动操作，应该立即生效）
       final currentProfileIdNotifier = _ref.read(currentProfileIdProvider.notifier);
       currentProfileIdNotifier.value = profile.id;
-      ProfileLogger.info('✅ 已设置为当前配置: ${profile.label ?? profile.id}');
+      _logger.info('✅ 已设置为当前配置: ${profile.label ?? profile.id}');
       
       // 3. 使用 silence 模式直接应用配置（新路由系统中 homeScaffoldKey 不可用）
       // needSetupProvider 的监听器会触发 handleChangeProfile，但因为 commonScaffoldState 
       // 未 mounted 会失败，所以我们在这里手动用 silence 模式触发
-      ProfileLogger.info('📋 使用 silence 模式应用配置...');
+      _logger.info('📋 使用 silence 模式应用配置...');
       try {
         await globalState.appController.applyProfile(silence: true);
-        ProfileLogger.info('✅ 配置应用成功');
+        _logger.info('✅ 配置应用成功');
       } catch (e) {
-        ProfileLogger.error('❌ 配置应用失败', e);
+        _logger.error('❌ 配置应用失败', e);
         // 不抛出异常，因为配置已经保存了
       }
       
-      ProfileLogger.info('配置添加成功: ${profile.label ?? profile.id}');
+      _logger.info('配置添加成功: ${profile.label ?? profile.id}');
     } catch (e) {
       throw Exception('添加配置失败: $e');
     }
@@ -307,7 +311,7 @@ class XBoardProfileImportService {
         }
       }
     } catch (e) {
-      ProfileLogger.warning('清理配置缓存时出错', e);
+      _logger.warning('清理配置缓存时出错', e);
     }
   }
   ImportErrorType _classifyError(dynamic error) {

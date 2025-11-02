@@ -2,6 +2,10 @@ import 'package:fl_clash/xboard/core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/update_check_state.dart';
 import '../services/update_service.dart';
+
+// 初始化文件级日志器
+final _logger = FileLogger('update_check_provider.dart');
+
 final updateServiceProvider = Provider<UpdateService>((ref) => UpdateService());
 final updateCheckProvider =
     StateNotifierProvider<UpdateCheckNotifier, UpdateCheckState>((ref) {
@@ -15,11 +19,11 @@ class UpdateCheckNotifier extends StateNotifier<UpdateCheckState> {
   })  : _updateService = updateService,
         super(const UpdateCheckState());
   Future<void> initialize() async {
-    FeatureLogger.info('开始检查更新', null, 'update_check_provider.dart');
+    _logger.info('开始检查更新');
     await checkForUpdates();
   }
   Future<void> refresh() async {
-    FeatureLogger.info('刷新检查更新', null, 'update_check_provider.dart');
+    _logger.info('刷新检查更新');
     await checkForUpdates();
   }
   Future<void> checkForUpdates() async {
@@ -30,7 +34,7 @@ class UpdateCheckNotifier extends StateNotifier<UpdateCheckState> {
     );
     try {
       final currentVersion = await _updateService.getCurrentVersion();
-      FeatureLogger.info('当前版本: $currentVersion', null, 'update_check_provider.dart');
+      _logger.info('当前版本: $currentVersion');
       state = state.copyWith(currentVersion: currentVersion);
       final updateInfo = await _updateService.checkForUpdates();
       if (!mounted) return;
@@ -43,16 +47,16 @@ class UpdateCheckNotifier extends StateNotifier<UpdateCheckState> {
         forceUpdate: updateInfo["forceUpdate"] as bool? ?? false,
       );
       if (state.hasUpdate) {
-        FeatureLogger.info('发现新版本: ${state.latestVersion}', null, 'update_check_provider.dart');
+        _logger.info('发现新版本: ${state.latestVersion}');
         if (state.releaseNotes != null && state.releaseNotes!.isNotEmpty) {
-          // FeatureLogger.debug('发布说明: ${state.releaseNotes}', null, 'update_check_provider.dart');
+          // _logger.debug('发布说明: ${state.releaseNotes}');
         }
       } else {
-        FeatureLogger.info('已是最新版本', null, 'update_check_provider.dart');
+        _logger.info('已是最新版本');
       }
     } catch (e) {
       if (!mounted) return;
-      FeatureLogger.error('检查更新失败', e, 'update_check_provider.dart');
+      _logger.error('检查更新失败', e);
       state = state.copyWith(
         isChecking: false,
         error: e.toString(),

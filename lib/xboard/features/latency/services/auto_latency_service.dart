@@ -8,6 +8,9 @@ import 'package:fl_clash/views/proxies/common.dart' as proxies_common;
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+// 初始化文件级日志器
+final _logger = FileLogger('auto_latency_service.dart');
+
 class AutoLatencyService {
   static final AutoLatencyService _instance = AutoLatencyService._internal();
   factory AutoLatencyService() => _instance;
@@ -25,16 +28,16 @@ class AutoLatencyService {
   // final OperationCoordinator _coordinator = OperationCoordinator();
   void initialize(WidgetRef ref) {
     if (_ref == ref && _isServiceActive) {
-      FeatureLogger.debug('服务已使用相同ref初始化，跳过重复初始化');
+      _logger.debug('服务已使用相同ref初始化，跳过重复初始化');
       return;
     }
     _ref = ref;
     if (!_isServiceActive) {
       _isServiceActive = true;
       _startPeriodicTesting();
-      FeatureLogger.info('自动延迟测试服务已启动', null, 'auto_latency_service.dart');
+      _logger.info('自动延迟测试服务已启动');
     } else {
-      FeatureLogger.debug('自动延迟测试服务已激活，更新ref引用', null, 'auto_latency_service.dart');
+      _logger.debug('自动延迟测试服务已激活，更新ref引用');
     }
   }
   void dispose() {
@@ -45,7 +48,7 @@ class AutoLatencyService {
     _isServiceActive = false;
     _ref = null;
     _proxyTestCache.clear();
-    FeatureLogger.info('自动延迟测试服务已停止');
+    _logger.info('自动延迟测试服务已停止');
   }
   void _cleanExpiredCache() {
     final now = DateTime.now();
@@ -60,36 +63,36 @@ class AutoLatencyService {
     });
     
     if (expiredEntries.isNotEmpty) {
-      FeatureLogger.debug('AutoLatencyService', '清理过期缓存: ${expiredEntries.join(', ')}');
+      _logger.debug('AutoLatencyService', '清理过期缓存: ${expiredEntries.join(', ')}');
     }
   }
   bool _ensureServiceActive() {
     if (!_isServiceActive || _ref == null) {
-      FeatureLogger.warning('服务未激活或ref为空');
+      _logger.warning('服务未激活或ref为空');
       return false;
     }
     
     if (!_isRefValid()) {
-      FeatureLogger.warning('Ref已失效，服务不可用');
+      _logger.warning('Ref已失效，服务不可用');
       return false;
     }
     
     try {
       final groups = _ref!.read(groupsProvider);
       if (groups.isEmpty) {
-        FeatureLogger.debug('代理组数据尚未加载，跳过测试');
+        _logger.debug('代理组数据尚未加载，跳过测试');
         return false;
       }
       
       final config = _ref!.read(patchClashConfigProvider);
       final mode = config.mode;
       if (mode != Mode.global && mode != Mode.rule) {
-        FeatureLogger.debug('当前模式($mode)不支持延迟测试');
+        _logger.debug('当前模式($mode)不支持延迟测试');
         return false;
       }
       
     } catch (e) {
-      FeatureLogger.error('无法获取代理组或配置数据', e);
+      _logger.error('无法获取代理组或配置数据', e);
       return false;
     }
     return true;
@@ -99,66 +102,66 @@ class AutoLatencyService {
       return;
     }
     if (!_isRefValid()) {
-      FeatureLogger.warning('Ref已失效，跳过延迟测试');
+      _logger.warning('Ref已失效，跳过延迟测试');
       return;
     }
     try {
       final currentProxy = _getCurrentSelectedProxy();
       if (currentProxy == null) {
-        FeatureLogger.debug('未找到当前代理，跳过测试');
+        _logger.debug('未找到当前代理，跳过测试');
         return;
       }
       
       if (!forceTest) {
         if (!_shouldTestProxy(currentProxy.name)) {
-          FeatureLogger.debug('代理 ${currentProxy.name} 无需重复测试（缓存有效）');
+          _logger.debug('代理 ${currentProxy.name} 无需重复测试（缓存有效）');
           return;
         }
         
         if (_lastTestedProxy == currentProxy.name && _lastTestTime != null) {
           final timeSinceLastTest = DateTime.now().difference(_lastTestTime!);
           if (timeSinceLastTest.inSeconds < 5) {
-            FeatureLogger.debug('代理 ${currentProxy.name} 刚刚测试过(${timeSinceLastTest.inSeconds}s前)，跳过重复测试');
+            _logger.debug('代理 ${currentProxy.name} 刚刚测试过(${timeSinceLastTest.inSeconds}s前)，跳过重复测试');
             return;
           }
         }
       }
       
-      FeatureLogger.info('开始测试节点延迟: ${currentProxy.name}', null, 'auto_latency_service.dart');
+      _logger.info('开始测试节点延迟: ${currentProxy.name}');
       final testUrl = _ref!.read(appSettingProvider).testUrl;
       await proxies_common.proxyDelayTest(currentProxy, testUrl);
       _lastTestedProxy = currentProxy.name;
       _lastTestTime = DateTime.now();
       _proxyTestCache[currentProxy.name] = DateTime.now();
-      FeatureLogger.info('节点延迟测试完成: ${currentProxy.name}', null, 'auto_latency_service.dart');
+      _logger.info('节点延迟测试完成: ${currentProxy.name}');
     } catch (e) {
-      FeatureLogger.error('延迟测试失败', e);
+      _logger.error('延迟测试失败', e);
     }
   }
   Future<void> testProxy(Proxy proxy, {bool forceTest = false}) async {
     if (!_isServiceActive || _ref == null) {
-      FeatureLogger.warning('服务未激活或ref为空，跳过指定节点测试');
+      _logger.warning('服务未激活或ref为空，跳过指定节点测试');
       return;
     }
     
     if (!_isRefValid()) {
-      FeatureLogger.warning('Ref已失效，跳过指定节点延迟测试');
+      _logger.warning('Ref已失效，跳过指定节点延迟测试');
       return;
     }
     
     try {
       if (!forceTest && !_shouldTestProxy(proxy.name)) {
-        FeatureLogger.debug('指定节点 ${proxy.name} 无需重复测试（缓存有效）');
+        _logger.debug('指定节点 ${proxy.name} 无需重复测试（缓存有效）');
         return;
       }
       
-      FeatureLogger.info('开始测试指定节点延迟: ${proxy.name}');
+      _logger.info('开始测试指定节点延迟: ${proxy.name}');
       final testUrl = _ref!.read(appSettingProvider).testUrl;
       await proxies_common.proxyDelayTest(proxy, testUrl);
       _proxyTestCache[proxy.name] = DateTime.now();
-      FeatureLogger.info('指定节点延迟测试完成: ${proxy.name}');
+      _logger.info('指定节点延迟测试完成: ${proxy.name}');
     } catch (e) {
-      FeatureLogger.error('指定节点延迟测试失败', e);
+      _logger.error('指定节点延迟测试失败', e);
     }
   }
   Future<void> testCurrentGroupNodes({int maxNodes = 5}) async {
@@ -166,29 +169,29 @@ class AutoLatencyService {
       return;
     }
     if (!_isRefValid()) {
-      FeatureLogger.warning('Ref已失效，跳过批量延迟测试');
+      _logger.warning('Ref已失效，跳过批量延迟测试');
       return;
     }
     try {
       final currentGroup = _getCurrentGroup();
       if (currentGroup == null || currentGroup.all.isEmpty) {
-        FeatureLogger.debug('未找到当前组或组为空，跳过批量测试');
+        _logger.debug('未找到当前组或组为空，跳过批量测试');
         return;
       }
       final nodesToTest = currentGroup.all.take(maxNodes).toList();
-      FeatureLogger.info('AutoLatencyService', '开始批量测试当前组 ${currentGroup.name} 的节点，数量: ${nodesToTest.length}');
-      FeatureLogger.debug('AutoLatencyService', '测试节点列表: ${nodesToTest.map((p) => p.name).join(', ')}');
+      _logger.info('AutoLatencyService', '开始批量测试当前组 ${currentGroup.name} 的节点，数量: ${nodesToTest.length}');
+      _logger.debug('AutoLatencyService', '测试节点列表: ${nodesToTest.map((p) => p.name).join(', ')}');
       final testUrl = _ref!.read(appSettingProvider).testUrl;
       await proxies_common.delayTest(nodesToTest, testUrl);
-      FeatureLogger.info('批量延迟测试完成');
+      _logger.info('批量延迟测试完成');
     } catch (e) {
-      FeatureLogger.error('批量延迟测试失败', e);
+      _logger.error('批量延迟测试失败', e);
     }
   }
   Timer? _nodeChangeTimer;
 
   void onNodeChanged() {
-    FeatureLogger.info('检测到节点切换，将自动测试新节点', null, 'auto_latency_service.dart');
+    _logger.info('检测到节点切换，将自动测试新节点');
     
     // 使用防抖机制，避免快速切换时的重复测试
     // _coordinator已废弃，延迟后直接执行
@@ -204,7 +207,7 @@ class AutoLatencyService {
     
     final currentProxy = _getCurrentSelectedProxy();
     if (currentProxy == null) {
-      FeatureLogger.warning('节点切换后未找到有效代理');
+      _logger.warning('节点切换后未找到有效代理');
       return;
     }
     
@@ -212,19 +215,19 @@ class AutoLatencyService {
     if (_lastTestedProxy == currentProxy.name && _lastTestTime != null) {
       final timeSinceLastTest = DateTime.now().difference(_lastTestTime!);
       if (timeSinceLastTest.inSeconds < 3) {
-        FeatureLogger.debug('节点 ${currentProxy.name} 刚测试过，跳过重复测试');
+        _logger.debug('节点 ${currentProxy.name} 刚测试过，跳过重复测试');
         return;
       }
     }
     
     // 使用协调器确保同一节点不会同时测试
     // _coordinator已废弃，直接执行
-    FeatureLogger.info('执行节点切换后的延迟测试: ${currentProxy.name}');
+    _logger.info('执行节点切换后的延迟测试: ${currentProxy.name}');
     testCurrentNode(forceTest: true);
   }
   void onConnectionStatusChanged(bool isConnected) {
     if (isConnected) {
-      FeatureLogger.info('代理连接成功，将自动测试当前节点');
+      _logger.info('代理连接成功，将自动测试当前节点');
       Timer(const Duration(milliseconds: 1500), () {
         if (_ensureServiceActive() && _isRefValid()) {
           testCurrentNode(forceTest: true);
@@ -236,7 +239,7 @@ class AutoLatencyService {
         }
       });
     } else {
-      FeatureLogger.info('代理连接断开');
+      _logger.info('代理连接断开');
     }
   }
   void _startPeriodicTesting() {
@@ -251,12 +254,12 @@ class AutoLatencyService {
 
   Future<void> _performPeriodicTest() async {
     if (!_ensureServiceActive()) {
-      FeatureLogger.warning('服务状态检查失败，跳过定期测试');
+      _logger.warning('服务状态检查失败，跳过定期测试');
       return;
     }
     
     try {
-      FeatureLogger.info('执行定期延迟测试');
+      _logger.info('执行定期延迟测试');
       _cleanExpiredCache();
       
       await testCurrentNode();
@@ -268,9 +271,9 @@ class AutoLatencyService {
         }
       });
     } catch (e) {
-      FeatureLogger.error('定期测试执行失败', e);
+      _logger.error('定期测试执行失败', e);
       if (e.toString().contains('disposed') || e.toString().contains('invalid')) {
-        FeatureLogger.warning('检测到状态异常，重置服务状态');
+        _logger.warning('检测到状态异常，重置服务状态');
         _ref = null;
       }
     }
@@ -284,7 +287,7 @@ class AutoLatencyService {
     final timeSinceLastTest = now.difference(lastTestTime);
     final shouldTest = timeSinceLastTest.inMinutes >= _cacheMinutes;
     if (!shouldTest) {
-      FeatureLogger.debug('代理 $proxyName 缓存有效，距上次测试 ${timeSinceLastTest.inSeconds}s');
+      _logger.debug('代理 $proxyName 缓存有效，距上次测试 ${timeSinceLastTest.inSeconds}s');
     }
     return shouldTest;
   }
@@ -295,7 +298,7 @@ class AutoLatencyService {
       return true;
     } catch (e) {
       if (e.toString().contains('disposed')) {
-        FeatureLogger.warning('检测到ref已disposed，清理服务状态');
+        _logger.warning('检测到ref已disposed，清理服务状态');
         _ref = null;
         return false;
       }
@@ -304,7 +307,7 @@ class AutoLatencyService {
   }
   Proxy? _getCurrentSelectedProxy() {
     if (_ref == null || !_isRefValid()) {
-      FeatureLogger.warning('ref无效，无法获取当前代理');
+      _logger.warning('ref无效，无法获取当前代理');
       return null;
     }
     try {
@@ -312,30 +315,30 @@ class AutoLatencyService {
       final selectedMap = _ref!.read(selectedMapProvider);
       final mode = _ref!.read(patchClashConfigProvider.select((state) => state.mode));
       if (groups.isEmpty) {
-        FeatureLogger.debug('代理组为空，无法获取当前代理');
+        _logger.debug('代理组为空，无法获取当前代理');
         return null;
       }
-      FeatureLogger.debug('当前模式: $mode, 组数量: ${groups.length}', null);
+      _logger.debug('当前模式: $mode, 组数量: ${groups.length}', null);
       
       Group? currentGroup = _findCurrentGroup(groups, selectedMap, mode);
       if (currentGroup == null || currentGroup.all.isEmpty) {
-        FeatureLogger.debug('当前组为空或无代理节点');
+        _logger.debug('当前组为空或无代理节点');
         return null;
       }
       
-      FeatureLogger.debug('找到当前组: ${currentGroup.name}, 类型: ${currentGroup.type}, 节点数: ${currentGroup.all.length}', null);
+      _logger.debug('找到当前组: ${currentGroup.name}, 类型: ${currentGroup.type}, 节点数: ${currentGroup.all.length}', null);
       
       Proxy? selectedProxy = _getSelectedProxyFromGroup(currentGroup, selectedMap, groups);
       if (selectedProxy != null) {
-        FeatureLogger.debug('最终选中的代理: ${selectedProxy.name}');
+        _logger.debug('最终选中的代理: ${selectedProxy.name}');
         return selectedProxy;
       }
       
       final fallbackProxy = currentGroup.all.first;
-      FeatureLogger.debug('使用备用代理: ${fallbackProxy.name}');
+      _logger.debug('使用备用代理: ${fallbackProxy.name}');
       return fallbackProxy;
     } catch (e) {
-      FeatureLogger.error('获取当前代理失败', e);
+      _logger.error('获取当前代理失败', e);
       return null;
     }
   }
@@ -367,7 +370,7 @@ class AutoLatencyService {
 
   Proxy? _getSelectedProxyFromGroup(Group group, Map<String, String> selectedMap, List<Group> allGroups) {
     final selectedProxyName = selectedMap[group.name] ?? "";
-    FeatureLogger.debug('组 ${group.name} 的选中代理: $selectedProxyName');
+    _logger.debug('组 ${group.name} 的选中代理: $selectedProxyName');
     
     String realNodeName = "";
     
@@ -375,9 +378,9 @@ class AutoLatencyService {
       realNodeName = group.now?.isNotEmpty == true ? group.now! : "";
       if (realNodeName.isEmpty && group.all.isNotEmpty) {
         realNodeName = group.all.first.name;
-        FeatureLogger.debug('${group.type}组now为空，使用第一个节点: $realNodeName');
+        _logger.debug('${group.type}组now为空，使用第一个节点: $realNodeName');
       }
-      FeatureLogger.debug('${group.type}组当前节点: $realNodeName');
+      _logger.debug('${group.type}组当前节点: $realNodeName');
     } else {
       if (selectedProxyName.isNotEmpty) {
         final referencedGroup = allGroups.where((g) => g.name == selectedProxyName).firstOrNull;
@@ -391,30 +394,30 @@ class AutoLatencyService {
             realNodeName = selectedProxyName;
           } else {
             realNodeName = group.all.isNotEmpty ? group.all.first.name : "";
-            FeatureLogger.debug('选中的代理不存在，使用默认节点: $realNodeName');
+            _logger.debug('选中的代理不存在，使用默认节点: $realNodeName');
           }
         }
       } else {
         realNodeName = group.all.isNotEmpty ? group.all.first.name : "";
-        FeatureLogger.debug('未选择代理，使用默认节点: $realNodeName');
+        _logger.debug('未选择代理，使用默认节点: $realNodeName');
       }
-      FeatureLogger.debug('Selector组当前节点: $realNodeName');
+      _logger.debug('Selector组当前节点: $realNodeName');
     }
     
     if (realNodeName.isNotEmpty && group.all.any((p) => p.name == realNodeName)) {
       final proxy = group.all.firstWhere((proxy) => proxy.name == realNodeName);
       final isRealProxy = !allGroups.any((g) => g.name == realNodeName);
       if (isRealProxy) {
-        FeatureLogger.debug('找到真实代理节点: ${proxy.name}');
+        _logger.debug('找到真实代理节点: ${proxy.name}');
         return proxy;
       } else {
-        FeatureLogger.debug('节点 $realNodeName 是组引用，递归查找真实节点');
+        _logger.debug('节点 $realNodeName 是组引用，递归查找真实节点');
         final referencedGroup = allGroups.firstWhere((g) => g.name == realNodeName);
         return _getSelectedProxyFromGroup(referencedGroup, selectedMap, allGroups);
       }
     }
     
-    FeatureLogger.debug('未找到有效的代理节点');
+    _logger.debug('未找到有效的代理节点');
     return null;
   }
   Group? _getCurrentGroup() {
@@ -445,7 +448,7 @@ class AutoLatencyService {
       }
       return null;
     } catch (e) {
-      FeatureLogger.error('获取当前组失败', e);
+      _logger.error('获取当前组失败', e);
       return null;
     }
   }

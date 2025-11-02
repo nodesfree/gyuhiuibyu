@@ -8,6 +8,9 @@ import 'package:url_launcher/url_launcher.dart';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
+// 初始化文件级日志器
+final _logger = FileLogger('message_attachment_widget.dart');
+
 /// 消息附件显示组件
 class MessageAttachmentWidget extends StatefulWidget {
   final MessageAttachment attachment;
@@ -74,11 +77,11 @@ class _MessageAttachmentWidgetState extends State<MessageAttachmentWidget> {
     try {
       final token = await CustomerSupportServiceConfig.getUserToken();
       if (token == null) {
-        XBoardLogger.warning('无法获取认证token，跳过图片加载');
+        _logger.warning('无法获取认证token，跳过图片加载');
         return null;
       }
 
-      XBoardLogger.debug('开始加载图片: $imageUrl');
+      _logger.debug('开始加载图片: $imageUrl');
 
       final client = http.Client();
       try {
@@ -97,23 +100,23 @@ class _MessageAttachmentWidgetState extends State<MessageAttachmentWidget> {
         );
 
         if (response.statusCode == 200) {
-          XBoardLogger.info('图片加载成功: ${response.bodyBytes.length} bytes');
+          _logger.info('图片加载成功: ${response.bodyBytes.length} bytes');
           return response.bodyBytes;
         } else {
-          XBoardLogger.error('图片加载失败: HTTP ${response.statusCode}');
+          _logger.error('图片加载失败: HTTP ${response.statusCode}');
           return null;
         }
       } finally {
         client.close();
       }
     } catch (e) {
-      XBoardLogger.error('加载带认证图片失败', e);
+      _logger.error('加载带认证图片失败', e);
       
       // 根据错误类型提供更友好的提示
       if (e.toString().contains('Connection timed out')) {
-        XBoardLogger.warning('提示: 网络连接超时，可能是网络问题或VPN设置问题');
+        _logger.warning('提示: 网络连接超时，可能是网络问题或VPN设置问题');
       } else if (e.toString().contains('SocketException')) {
-        XBoardLogger.warning('提示: 网络连接异常，请检查网络设置');
+        _logger.warning('提示: 网络连接异常，请检查网络设置');
       }
       
       return null;

@@ -9,13 +9,16 @@ import 'package:fl_clash/xboard/services/services.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'tun_introduction_dialog.dart';
 import 'package:fl_clash/l10n/l10n.dart';
+
+// 初始化文件级日志器
+final _logger = FileLogger('xboard_outbound_mode.dart');
 class XBoardOutboundMode extends StatelessWidget {
   const XBoardOutboundMode({super.key});
   void _handleModeChange(WidgetRef ref, Mode modeOption) {
-    XBoardLogger.debug('[XBoardOutboundMode] 切换模式到: $modeOption');
+    _logger.debug('[XBoardOutboundMode] 切换模式到: $modeOption');
     globalState.appController.changeMode(modeOption);
     if (modeOption == Mode.global) {
-      XBoardLogger.debug('[XBoardOutboundMode] 切换到全局模式，执行自动节点选择');
+      _logger.debug('[XBoardOutboundMode] 切换到全局模式，执行自动节点选择');
       Future.delayed(const Duration(milliseconds: 100), () {
         _selectValidProxyForGlobalMode(ref);
       });
@@ -48,41 +51,41 @@ class XBoardOutboundMode extends StatelessWidget {
     }
   }
   void _selectValidProxyForGlobalMode(WidgetRef ref) {
-    XBoardLogger.debug('[XBoardOutboundMode] 开始选择有效代理节点');
+    _logger.debug('[XBoardOutboundMode] 开始选择有效代理节点');
     final groups = ref.read(groupsProvider);
     if (groups.isEmpty) {
-      XBoardLogger.debug('[XBoardOutboundMode] 没有可用的代理组');
+      _logger.debug('[XBoardOutboundMode] 没有可用的代理组');
       return;
     }
     final globalGroup = groups.firstWhere(
       (group) => group.name == GroupName.GLOBAL.name,
       orElse: () => groups.first,
     );
-    XBoardLogger.debug('[XBoardOutboundMode] 找到全局组: ${globalGroup.name}, 节点数: ${globalGroup.all.length}');
+    _logger.debug('[XBoardOutboundMode] 找到全局组: ${globalGroup.name}, 节点数: ${globalGroup.all.length}');
     if (globalGroup.all.isEmpty) {
-      XBoardLogger.debug('[XBoardOutboundMode] 全局组没有可用节点');
+      _logger.debug('[XBoardOutboundMode] 全局组没有可用节点');
       return;
     }
     Proxy? validProxy;
     for (final proxy in globalGroup.all) {
-      XBoardLogger.debug('[XBoardOutboundMode] 检查节点: ${proxy.name}');
+      _logger.debug('[XBoardOutboundMode] 检查节点: ${proxy.name}');
       if (proxy.name.toUpperCase() != 'DIRECT' && 
           proxy.name.toLowerCase() != 'direct' &&
           proxy.name.toUpperCase() != 'REJECT') {
         validProxy = proxy;
-        XBoardLogger.debug('[XBoardOutboundMode] 选择有效代理节点: ${proxy.name}');
+        _logger.debug('[XBoardOutboundMode] 选择有效代理节点: ${proxy.name}');
         break;
       }
     }
     if (validProxy != null) {
-      XBoardLogger.debug('[XBoardOutboundMode] 设置选中代理: ${validProxy.name}');
+      _logger.debug('[XBoardOutboundMode] 设置选中代理: ${validProxy.name}');
       globalState.appController.updateCurrentSelectedMap(
         globalGroup.name,
         validProxy.name,
       );
-      XBoardLogger.debug('[XBoardOutboundMode] 代理节点设置完成');
+      _logger.debug('[XBoardOutboundMode] 代理节点设置完成');
     } else {
-      XBoardLogger.debug('[XBoardOutboundMode] 没有找到有效的代理节点');
+      _logger.debug('[XBoardOutboundMode] 没有找到有效的代理节点');
     }
   }
   @override

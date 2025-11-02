@@ -10,6 +10,9 @@ import 'package:fl_clash/xboard/infrastructure/infrastructure.dart';
 import 'package:fl_clash/xboard/infrastructure/http/user_agent_config.dart';
 import 'concurrent_subscription_service.dart';
 
+// 初始化文件级日志器
+final _logger = FileLogger('encrypted_subscription_service.dart');
+
 /// 加密订阅获取服务
 /// 
 /// 负责从XBoard加密端点获取订阅数据并解密
@@ -28,7 +31,7 @@ class EncryptedSubscriptionService {
     bool enableRace = true,
   }) async {
     try {
-      XBoardLogger.info('从登录数据获取加密订阅');
+      _logger.info('从登录数据获取加密订阅');
 
       // 1. 获取订阅信息（注意：这里获取的是订阅数据，不是Auth Token）
       final subscriptionData = await XBoardSDK.getSubscription();
@@ -42,7 +45,7 @@ class EncryptedSubscriptionService {
         return SubscriptionResult.failure('订阅URL为空');
       }
 
-      XBoardLogger.info('获取到订阅URL: $subscribeUrl');
+      _logger.info('获取到订阅URL: $subscribeUrl');
 
       // 2. 从订阅URL中提取订阅token（不是Auth Token！）
       final token = _extractTokenFromSubscriptionUrl(subscribeUrl);
@@ -51,7 +54,7 @@ class EncryptedSubscriptionService {
         return SubscriptionResult.failure('无法从订阅URL中提取token: $subscribeUrl');
       }
 
-      XBoardLogger.info('从订阅URL提取到订阅token: ${token.substring(0, 8)}...');
+      _logger.info('从订阅URL提取到订阅token: ${token.substring(0, 8)}...');
 
       // 3. 使用订阅token获取加密订阅
       return await getEncryptedSubscription(
@@ -61,7 +64,7 @@ class EncryptedSubscriptionService {
       );
 
     } catch (e) {
-      XBoardLogger.error('从登录数据获取订阅失败', e);
+      _logger.error('从登录数据获取订阅失败', e);
       return SubscriptionResult.failure('从登录数据获取订阅失败: $e');
     }
   }
@@ -92,7 +95,7 @@ class EncryptedSubscriptionService {
       
       return null;
     } catch (e) {
-      XBoardLogger.error('提取订阅token失败', e);
+      _logger.error('提取订阅token失败', e);
       return null;
     }
   }
@@ -110,7 +113,7 @@ class EncryptedSubscriptionService {
     bool enableRace = true,
   }) async {
     try {
-      XBoardLogger.info('开始获取加密订阅，token: ${token.substring(0, 8)}..., 竞速模式: $enableRace');
+      _logger.info('开始获取加密订阅，token: ${token.substring(0, 8)}..., 竞速模式: $enableRace');
 
       // 1. 获取订阅配置
       final subscriptionInfo = XBoardConfig.subscriptionInfo;
@@ -122,25 +125,25 @@ class EncryptedSubscriptionService {
       String? subscriptionUrl;
       
       if (enableRace && (subscriptionInfo.urls.length > 1)) {
-        XBoardLogger.info('[订阅竞速] 检测到 ${subscriptionInfo.urls.length} 个订阅源，启动竞速选择...');
+        _logger.info('[订阅竞速] 检测到 ${subscriptionInfo.urls.length} 个订阅源，启动竞速选择...');
         subscriptionUrl = await XBoardConfig.getFastestSubscriptionUrl(
           token,
           preferEncrypt: preferEncrypt,
         );
-        XBoardLogger.info('[订阅竞速] 🏆 竞速完成，最快URL: $subscriptionUrl');
+        _logger.info('[订阅竞速] 🏆 竞速完成，最快URL: $subscriptionUrl');
       } else {
         subscriptionUrl = subscriptionInfo.buildSubscriptionUrl(
           token, 
           forceEncrypt: preferEncrypt
         );
-        XBoardLogger.debug('[订阅服务] 使用默认URL（无需竞速）: $subscriptionUrl');
+        _logger.debug('[订阅服务] 使用默认URL（无需竞速）: $subscriptionUrl');
       }
       
       if (subscriptionUrl == null) {
         return SubscriptionResult.failure('无法构建订阅URL');
       }
 
-      XBoardLogger.debug('[订阅服务] 最终使用URL: $subscriptionUrl');
+      _logger.debug('[订阅服务] 最终使用URL: $subscriptionUrl');
 
       // 3. 获取加密数据
       final encryptedData = await _fetchEncryptedData(subscriptionUrl);
@@ -148,10 +151,10 @@ class EncryptedSubscriptionService {
         return SubscriptionResult.failure(encryptedData.error!);
       }
 
-      XBoardLogger.debug('[订阅服务] 获取到加密数据，长度: ${encryptedData.data!.length}');
+      _logger.debug('[订阅服务] 获取到加密数据，长度: ${encryptedData.data!.length}');
 
       // 4. 解密数据
-      XBoardLogger.info('[订阅服务] 🔐 开始解密获取到的加密数据...');
+      _logger.info('[订阅服务] 🔐 开始解密获取到的加密数据...');
       final decryptKey = await ConfigFileLoaderHelper.getDecryptKey();
       final decryptResult = XBoardDecryptHelper.smartDecrypt(
         encryptedData.data!,
@@ -159,16 +162,16 @@ class EncryptedSubscriptionService {
         tryFallback: true, // 允许尝试备用密钥
       );
       if (!decryptResult.success) {
-        XBoardLogger.error('[订阅服务] 💥 解密失败: ${decryptResult.message}');
+        _logger.error('[订阅服务] 💥 解密失败: ${decryptResult.message}');
         return SubscriptionResult.failure('解密失败: ${decryptResult.message}');
       }
 
-      XBoardLogger.info('[订阅服务] 🎉 解密成功！使用密钥: ${decryptResult.keyUsed?.substring(0, 8)}..., 解密内容长度: ${decryptResult.content.length}');
+      _logger.info('[订阅服务] 🎉 解密成功！使用密钥: ${decryptResult.keyUsed?.substring(0, 8)}..., 解密内容长度: ${decryptResult.content.length}');
 
       // 记录解密内容的基本统计信息
       final lines = decryptResult.content.split('\n');
       final nonEmptyLines = lines.where((line) => line.trim().isNotEmpty).length;
-      XBoardLogger.debug('[订阅服务] 解密内容统计: 总行数 ${lines.length}, 非空行数 $nonEmptyLines');
+      _logger.debug('[订阅服务] 解密内容统计: 总行数 ${lines.length}, 非空行数 $nonEmptyLines');
 
       return SubscriptionResult.success(
         content: decryptResult.content,
@@ -179,7 +182,7 @@ class EncryptedSubscriptionService {
       );
 
     } catch (e) {
-      XBoardLogger.error('处理过程异常', e);
+      _logger.error('处理过程异常', e);
       return SubscriptionResult.failure('获取加密订阅异常: $e');
     }
   }
@@ -189,11 +192,11 @@ class EncryptedSubscriptionService {
   /// [url] 订阅URL
   /// 返回加密的数据内容和订阅信息
   static Future<DataResult> _fetchEncryptedData(String url) async {
-    XBoardLogger.info('[数据获取] 开始获取加密数据，最大重试次数: $maxRetries');
+    _logger.info('[数据获取] 开始获取加密数据，最大重试次数: $maxRetries');
 
     for (int attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        XBoardLogger.debug('[数据获取] 第 $attempt/$maxRetries 次请求: $url');
+        _logger.debug('[数据获取] 第 $attempt/$maxRetries 次请求: $url');
 
         final client = HttpClient();
         client.connectionTimeout = requestTimeout;
@@ -208,70 +211,70 @@ class EncryptedSubscriptionService {
         
         final response = await request.close().timeout(requestTimeout);
         
-        XBoardLogger.debug('[数据获取] HTTP状态码: ${response.statusCode}');
+        _logger.debug('[数据获取] HTTP状态码: ${response.statusCode}');
 
         if (response.statusCode == 200) {
           final responseBody = await response.transform(utf8.decoder).join();
           final subscriptionUserInfo = response.headers.value('subscription-userinfo');
           client.close();
 
-          XBoardLogger.debug('[数据获取] ✅ 响应成功，数据长度: ${responseBody.length}');
+          _logger.debug('[数据获取] ✅ 响应成功，数据长度: ${responseBody.length}');
           if (subscriptionUserInfo != null) {
-            XBoardLogger.debug('[数据获取] 📊 获取到订阅信息: $subscriptionUserInfo');
+            _logger.debug('[数据获取] 📊 获取到订阅信息: $subscriptionUserInfo');
           }
 
           // 尝试解析JSON响应
           try {
             final jsonData = jsonDecode(responseBody);
             if (jsonData is Map<String, dynamic> && jsonData.containsKey('data')) {
-              XBoardLogger.debug('[数据获取] 📄 检测到JSON格式响应，提取data字段');
+              _logger.debug('[数据获取] 📄 检测到JSON格式响应，提取data字段');
               final dataContent = jsonData['data'] as String;
-              XBoardLogger.debug('[数据获取] 🔐 提取到加密数据长度: ${dataContent.length}');
+              _logger.debug('[数据获取] 🔐 提取到加密数据长度: ${dataContent.length}');
               return DataResult.success(dataContent, subscriptionUserInfo: subscriptionUserInfo);
             }
           } catch (e) {
-            XBoardLogger.debug('[数据获取] 📄 非JSON格式响应，直接返回原始内容');
+            _logger.debug('[数据获取] 📄 非JSON格式响应，直接返回原始内容');
             // 如果不是JSON，直接返回响应体
           }
 
-          XBoardLogger.debug('[数据获取] 🔐 返回原始响应内容作为加密数据');
+          _logger.debug('[数据获取] 🔐 返回原始响应内容作为加密数据');
           return DataResult.success(responseBody, subscriptionUserInfo: subscriptionUserInfo);
           
         } else {
           client.close();
           
           if (attempt < maxRetries) {
-            XBoardLogger.warning('[数据获取] ⚠️ 请求失败，状态码: ${response.statusCode}，${attempt * 2}秒后进行第${attempt + 1}次重试...');
+            _logger.warning('[数据获取] ⚠️ 请求失败，状态码: ${response.statusCode}，${attempt * 2}秒后进行第${attempt + 1}次重试...');
             await Future.delayed(Duration(seconds: attempt * 2));
             continue;
           } else {
-            XBoardLogger.error('[数据获取] 💥 请求最终失败，状态码: ${response.statusCode}，已达到最大重试次数');
+            _logger.error('[数据获取] 💥 请求最终失败，状态码: ${response.statusCode}，已达到最大重试次数');
             return DataResult.failure('HTTP请求失败: ${response.statusCode}');
           }
         }
         
       } on TimeoutException {
         if (attempt < maxRetries) {
-          XBoardLogger.warning('[数据获取] ⏰ 请求超时，${attempt * 2}秒后进行第${attempt + 1}次重试...');
+          _logger.warning('[数据获取] ⏰ 请求超时，${attempt * 2}秒后进行第${attempt + 1}次重试...');
           await Future.delayed(Duration(seconds: attempt * 2));
           continue;
         } else {
-          XBoardLogger.error('[数据获取] 💥 请求最终超时，已达到最大重试次数');
+          _logger.error('[数据获取] 💥 请求最终超时，已达到最大重试次数');
           return DataResult.failure('请求超时');
         }
       } catch (e) {
         if (attempt < maxRetries) {
-          XBoardLogger.warning('[数据获取] ⚠️ 请求异常: $e，${attempt * 2}秒后进行第${attempt + 1}次重试...');
+          _logger.warning('[数据获取] ⚠️ 请求异常: $e，${attempt * 2}秒后进行第${attempt + 1}次重试...');
           await Future.delayed(Duration(seconds: attempt * 2));
           continue;
         } else {
-          XBoardLogger.error('[数据获取] 💥 请求最终异常: $e，已达到最大重试次数');
+          _logger.error('[数据获取] 💥 请求最终异常: $e，已达到最大重试次数');
           return DataResult.failure('请求异常: $e');
         }
       }
     }
 
-    XBoardLogger.error('[数据获取] 💥 所有重试都失败了，已尝试 $maxRetries 次');
+    _logger.error('[数据获取] 💥 所有重试都失败了，已尝试 $maxRetries 次');
     return DataResult.failure('所有重试都失败了');
   }
 
@@ -285,7 +288,7 @@ class EncryptedSubscriptionService {
     bool enableRace = true,
   }) async {
     try {
-      XBoardLogger.info('回退到普通订阅模式');
+      _logger.info('回退到普通订阅模式');
 
       final subscriptionInfo = XBoardConfig.subscriptionInfo;
       if (subscriptionInfo == null) {
@@ -296,7 +299,7 @@ class EncryptedSubscriptionService {
       String? normalUrl;
       
       if (enableRace && (subscriptionInfo.urls.length > 1)) {
-        XBoardLogger.info('[普通订阅竞速] 启动竞速选择普通端点...');
+        _logger.info('[普通订阅竞速] 启动竞速选择普通端点...');
         normalUrl = await XBoardConfig.getFastestSubscriptionUrl(
           token,
           preferEncrypt: false,
@@ -342,7 +345,7 @@ class EncryptedSubscriptionService {
     try {
       // 如果没有提供token，优先从登录数据获取
       if (token == null || token.isEmpty) {
-        XBoardLogger.info('未提供token，从登录数据获取');
+        _logger.info('未提供token，从登录数据获取');
         return await getEncryptedSubscriptionFromLogin(
           preferEncrypt: preferEncrypt,
           enableRace: enableRace,
@@ -361,7 +364,7 @@ class EncryptedSubscriptionService {
           return encryptedResult;
         }
         
-        XBoardLogger.warning('加密订阅失败，尝试普通订阅: ${encryptedResult.error}');
+        _logger.warning('加密订阅失败，尝试普通订阅: ${encryptedResult.error}');
         
         // 回退到普通订阅
         return await fallbackToNormalSubscription(token, enableRace: enableRace);
@@ -389,11 +392,11 @@ class EncryptedSubscriptionService {
     bool enableRace = true,
   }) async {
     try {
-      XBoardLogger.info('[竞速增强] 获取加密订阅，竞速模式: $enableRace');
+      _logger.info('[竞速增强] 获取加密订阅，竞速模式: $enableRace');
 
       // 如果未启用竞速模式，回退到原始方法
       if (!enableRace) {
-        XBoardLogger.info('[竞速增强] 竞速模式已禁用，使用标准获取方式');
+        _logger.info('[竞速增强] 竞速模式已禁用，使用标准获取方式');
         return await getEncryptedSubscriptionFromLogin(preferEncrypt: preferEncrypt);
       }
 
@@ -402,7 +405,7 @@ class EncryptedSubscriptionService {
         preferEncrypt: preferEncrypt,
       );
     } catch (e) {
-      XBoardLogger.error('[竞速增强] 竞速获取失败，回退到标准方式', e);
+      _logger.error('[竞速增强] 竞速获取失败，回退到标准方式', e);
       
       // 竞速失败时回退到标准方式
       return await getEncryptedSubscriptionFromLogin(preferEncrypt: preferEncrypt);
@@ -422,7 +425,7 @@ class EncryptedSubscriptionService {
     bool enableRace = true,
   }) async {
     try {
-      XBoardLogger.info('[竞速增强] 获取加密订阅，token: ${token.substring(0, 8)}..., 竞速模式: $enableRace');
+      _logger.info('[竞速增强] 获取加密订阅，token: ${token.substring(0, 8)}..., 竞速模式: $enableRace');
 
       // 如果未启用竞速模式，回退到原始方法
       if (!enableRace) {
@@ -435,7 +438,7 @@ class EncryptedSubscriptionService {
         preferEncrypt: preferEncrypt,
       );
     } catch (e) {
-      XBoardLogger.error('[竞速增强] 竞速获取失败，回退到标准方式', e);
+      _logger.error('[竞速增强] 竞速获取失败，回退到标准方式', e);
       
       // 竞速失败时回退到标准方式
       return await getEncryptedSubscription(token, preferEncrypt: preferEncrypt);

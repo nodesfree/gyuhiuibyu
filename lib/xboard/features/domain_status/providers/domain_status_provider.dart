@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/domain_status_state.dart';
 import '../services/domain_status_service.dart';
 
+// 初始化文件级日志器
+final _logger = FileLogger('domain_status_provider.dart');
+
 /// 域名状态服务提供者
 final domainStatusServiceProvider = Provider<DomainStatusService>((ref) {
   return DomainStatusService();
@@ -43,9 +46,9 @@ class DomainStatusNotifier extends StateNotifier<DomainStatusState> {
     try {
       await _service.initialize();
       state = state.copyWith(isInitialized: true);
-      XBoardLogger.info('初始化完成');
+      _logger.info('初始化完成');
     } catch (e) {
-      XBoardLogger.error('初始化失败', e);
+      _logger.error('初始化失败', e);
       state = state.copyWith(
         status: DomainStatus.failed,
         errorMessage: '域名服务初始化失败: $e',
@@ -66,7 +69,7 @@ class DomainStatusNotifier extends StateNotifier<DomainStatusState> {
     );
 
     try {
-      XBoardLogger.info('开始检查域名');
+      _logger.info('开始检查域名');
       
       final result = await _service.checkDomainStatus();
       
@@ -82,19 +85,19 @@ class DomainStatusNotifier extends StateNotifier<DomainStatusState> {
           lastChecked: DateTime.now(),
           errorMessage: null,
         );
-        XBoardLogger.info('域名检查成功: ${state.currentDomain}');
+        _logger.info('域名检查成功: ${state.currentDomain}');
       } else {
         state = state.copyWith(
           status: DomainStatus.failed,
           errorMessage: result['message'] as String? ?? '域名检查失败',
           lastChecked: DateTime.now(),
         );
-        XBoardLogger.error('域名检查失败: ${state.errorMessage}');
+        _logger.error('域名检查失败: ${state.errorMessage}');
       }
     } catch (e) {
       if (!mounted) return;
       
-      XBoardLogger.error('域名检查异常', e);
+      _logger.error('域名检查异常', e);
       state = state.copyWith(
         status: DomainStatus.failed,
         errorMessage: '域名检查异常: $e',
@@ -106,11 +109,11 @@ class DomainStatusNotifier extends StateNotifier<DomainStatusState> {
   /// 刷新域名状态
   Future<void> refresh() async {
     try {
-      XBoardLogger.info('刷新域名状态');
+      _logger.info('刷新域名状态');
       await _service.refreshDomainCache();
       await checkDomain();
     } catch (e) {
-      XBoardLogger.error('刷新失败', e);
+      _logger.error('刷新失败', e);
       if (mounted) {
         state = state.copyWith(
           errorMessage: '刷新失败: $e',
@@ -124,7 +127,7 @@ class DomainStatusNotifier extends StateNotifier<DomainStatusState> {
     try {
       return await _service.validateDomain(domain);
     } catch (e) {
-      XBoardLogger.error('域名验证失败', e);
+      _logger.error('域名验证失败', e);
       return false;
     }
   }

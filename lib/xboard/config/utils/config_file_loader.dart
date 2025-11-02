@@ -3,6 +3,9 @@ import 'package:yaml/yaml.dart';
 import '../core/config_settings.dart';
 import '../../core/core.dart';
 
+// 初始化文件级日志器
+final _logger = FileLogger('config_file_loader.dart');
+
 /// 配置文件加载器
 /// 
 /// 从 assets/config/xboard.config.yaml 加载 XBoard 配置
@@ -17,10 +20,10 @@ class ConfigFileLoader {
     try {
       final yamlString = await rootBundle.loadString(configPath);
       final config = _parseYamlString(yamlString);
-      XBoardLogger.info('从 assets 加载配置: $configPath');
+      _logger.info('从 assets 加载配置: $configPath');
       return config;
     } catch (e) {
-      XBoardLogger.error('加载配置文件失败', e);
+      _logger.error('加载配置文件失败', e);
       return const ConfigSettings();
     }
   }
@@ -49,7 +52,7 @@ class ConfigFileLoader {
         log: _parseLogSettings(logJson),
       );
     } catch (e) {
-      XBoardLogger.error('解析 YAML 配置失败', e);
+      _logger.error('解析 YAML 配置失败', e);
       rethrow;
     }
   }
@@ -72,15 +75,15 @@ class ConfigFileLoader {
   /// 解析远程配置
   static RemoteConfigSettings _parseRemoteConfig(Map<String, dynamic> json) {
     final sourcesList = json['sources'] as List<dynamic>? ?? [];
-    XBoardLogger.info('[ConfigLoader] 解析远程配置源: ${sourcesList.length} 个源');
+    _logger.info('[ConfigLoader] 解析远程配置源: ${sourcesList.length} 个源');
     
     final sources = sourcesList
         .map((item) => _parseRemoteSource(item as Map<String, dynamic>))
         .toList();
     
-    XBoardLogger.info('[ConfigLoader] 成功解析 ${sources.length} 个配置源');
+    _logger.info('[ConfigLoader] 成功解析 ${sources.length} 个配置源');
     for (final source in sources) {
-      XBoardLogger.info('[ConfigLoader] - ${source.name}: ${source.url}');
+      _logger.info('[ConfigLoader] - ${source.name}: ${source.url}');
     }
     
     return RemoteConfigSettings(
@@ -131,7 +134,7 @@ class ConfigFileLoader {
       
       return configMap['xboard'] as Map<String, dynamic>? ?? {};
     } catch (e) {
-      XBoardLogger.error('加载扩展配置失败', e);
+      _logger.error('加载扩展配置失败', e);
       return {};
     }
   }
@@ -291,7 +294,7 @@ extension ConfigFileLoaderHelper on ConfigFileLoader {
       
       return prefix as String;
     } catch (e) {
-      XBoardLogger.warning('获取混淆前缀失败: $e');
+      _logger.warning('获取混淆前缀失败: $e');
       return null;
     }
   }

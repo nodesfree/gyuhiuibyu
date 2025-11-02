@@ -114,7 +114,7 @@ class XBoardHttpClient {
       responseHeader: false,
       responseBody: true,
       error: true,
-      logPrint: (obj) => XBoardLogger.debug('[HTTP] $obj'),
+      logPrint: (obj) => _logger.debug('[HTTP] $obj'),
     ));
     
     // 添加重试拦截器
@@ -373,7 +373,7 @@ class _RetryInterceptor extends Interceptor {
     
     // 计算延迟
     final delay = XBoardHttpConfig.retryDelay(attempt + 1);
-    XBoardLogger.warning(
+    _logger.warning(
       '[HTTP] 请求失败，${delay.inSeconds}秒后进行第${attempt + 1}次重试: ${err.requestOptions.uri}',
     );
     

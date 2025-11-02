@@ -10,6 +10,9 @@ import 'package:fl_clash/xboard/infrastructure/infrastructure.dart';
 import 'package:fl_clash/xboard/infrastructure/http/user_agent_config.dart';
 import 'encrypted_subscription_service.dart';
 
+// 初始化文件级日志器
+final _logger = FileLogger('concurrent_subscription_service.dart');
+
 /// 并发竞速订阅获取服务
 /// 
 /// 实现多源并发请求，先到先用的竞速机制
@@ -25,7 +28,7 @@ class ConcurrentSubscriptionService {
     bool preferEncrypt = true,
   }) async {
     try {
-      XBoardLogger.info('[竞速订阅] 从登录数据开始并发获取');
+      _logger.info('[竞速订阅] 从登录数据开始并发获取');
 
       // 1. 获取订阅信息和token
       final subscriptionData = await XBoardSDK.getSubscription();
@@ -38,13 +41,13 @@ class ConcurrentSubscriptionService {
         return SubscriptionResult.failure('订阅token无效');
       }
 
-      XBoardLogger.info('[竞速订阅] 获取到token: ${token.substring(0, 8)}...');
+      _logger.info('[竞速订阅] 获取到token: ${token.substring(0, 8)}...');
 
       // 2. 使用token进行竞速获取
       return await raceGetEncryptedSubscription(token, preferEncrypt: preferEncrypt);
 
     } catch (e) {
-      XBoardLogger.error('[竞速订阅] 从登录数据获取失败', e);
+      _logger.error('[竞速订阅] 从登录数据获取失败', e);
       return SubscriptionResult.failure('从登录数据获取订阅失败: $e');
     }
   }
@@ -60,12 +63,12 @@ class ConcurrentSubscriptionService {
     bool preferEncrypt = true,
   }) async {
     try {
-      XBoardLogger.info('[竞速订阅] 开始并发竞速获取，token: ${token.substring(0, 8)}...');
+      _logger.info('[竞速订阅] 开始并发竞速获取，token: ${token.substring(0, 8)}...');
 
       // 1. 获取所有可用的订阅URL信息
       final subscriptionUrlInfos = _getAllSubscriptionUrlInfos();
       if (subscriptionUrlInfos.isEmpty) {
-        XBoardLogger.warning('[竞速订阅] 没有找到可用的订阅URL配置');
+        _logger.warning('[竞速订阅] 没有找到可用的订阅URL配置');
         // 回退到单一订阅获取
         return await EncryptedSubscriptionService.getEncryptedSubscription(
           token, 
@@ -73,7 +76,7 @@ class ConcurrentSubscriptionService {
         );
       }
 
-      XBoardLogger.info('[竞速订阅] 找到 ${subscriptionUrlInfos.length} 个订阅URL，开始并发请求');
+      _logger.info('[竞速订阅] 找到 ${subscriptionUrlInfos.length} 个订阅URL，开始并发请求');
 
       // 2. 为每个URL构建完整的请求URL
       final requestUrls = <String>[];
@@ -81,7 +84,7 @@ class ConcurrentSubscriptionService {
         final fullUrl = urlInfo.buildSubscriptionUrl(token, preferEncrypt: preferEncrypt);
         if (fullUrl.isNotEmpty) {
           requestUrls.add(fullUrl);
-          XBoardLogger.debug('[竞速订阅] 添加请求URL: $fullUrl');
+          _logger.debug('[竞速订阅] 添加请求URL: $fullUrl');
         }
       }
 
@@ -92,11 +95,11 @@ class ConcurrentSubscriptionService {
       // 3. 执行并发竞速请求
       final result = await _raceMultipleRequests(requestUrls, token);
       
-      XBoardLogger.info('[竞速订阅] 竞速请求完成，成功: ${result.success}');
+      _logger.info('[竞速订阅] 竞速请求完成，成功: ${result.success}');
       return result;
 
     } catch (e) {
-      XBoardLogger.error('[竞速订阅] 并发获取异常', e);
+      _logger.error('[竞速订阅] 并发获取异常', e);
       return SubscriptionResult.failure('并发竞速获取失败: $e');
     }
   }
@@ -105,13 +108,13 @@ class ConcurrentSubscriptionService {
   static List<SubscriptionUrlInfo> _getAllSubscriptionUrlInfos() {
     try {
       if (!XBoardConfig.isInitialized) {
-        XBoardLogger.warning('[竞速订阅] XBoardConfig 未初始化');
+        _logger.warning('[竞速订阅] XBoardConfig 未初始化');
         return [];
       }
       
       return XBoardConfig.subscriptionUrlList;
     } catch (e) {
-      XBoardLogger.error('[竞速订阅] 获取订阅URL列表失败', e);
+      _logger.error('[竞速订阅] 获取订阅URL列表失败', e);
       return [];
     }
   }
@@ -132,11 +135,11 @@ class ConcurrentSubscriptionService {
 
     if (urls.length == 1) {
       // 只有一个URL，直接请求
-      XBoardLogger.info('[竞速订阅] 只有一个URL，直接请求');
+      _logger.info('[竞速订阅] 只有一个URL，直接请求');
       return await _fetchSingleSubscription(urls.first, originalToken);
     }
 
-    XBoardLogger.info('[竞速订阅] 开始并发竞速请求 ${urls.length} 个URL');
+    _logger.info('[竞速订阅] 开始并发竞速请求 ${urls.length} 个URL');
 
     // 创建并发请求任务
     final List<Future<SubscriptionResult>> futures = [];
@@ -163,7 +166,7 @@ class ConcurrentSubscriptionService {
         futures[i].then((result) {
           if (!completer.isCompleted && result.success) {
             // 第一个成功的获胜
-            XBoardLogger.info('[竞速订阅] 请求 #$i 获胜！');
+            _logger.info('[竞速订阅] 请求 #$i 获胜！');
             completer.complete(result);
             
             // 取消其他请求
@@ -200,7 +203,7 @@ class ConcurrentSubscriptionService {
 
     } catch (e) {
       // 所有请求都失败了，尝试等待并收集错误信息
-      XBoardLogger.warning('[竞速订阅] 所有并发请求可能都失败了，等待收集错误信息');
+      _logger.warning('[竞速订阅] 所有并发请求可能都失败了，等待收集错误信息');
       
       final results = await Future.wait(
         futures.map((future) => future.catchError((e) => 
@@ -211,7 +214,7 @@ class ConcurrentSubscriptionService {
       // 检查是否有成功的结果
       final successResults = results.where((r) => r.success);
       if (successResults.isNotEmpty) {
-        XBoardLogger.info('[竞速订阅] 在错误处理中发现成功结果');
+        _logger.info('[竞速订阅] 在错误处理中发现成功结果');
         return successResults.first;
       }
 
@@ -231,35 +234,35 @@ class ConcurrentSubscriptionService {
     int index,
   ) async {
     try {
-      XBoardLogger.debug('[竞速订阅] 请求 #$index 开始: ${url.length > 50 ? '${url.substring(0, 50)}...' : url}');
+      _logger.debug('[竞速订阅] 请求 #$index 开始: ${url.length > 50 ? '${url.substring(0, 50)}...' : url}');
       
       final result = await _fetchSingleSubscription(url, originalToken)
           .timeout(requestTimeout)
           .catchError((e) {
             if (cancelToken.isCancelled) {
-              XBoardLogger.debug('[竞速订阅] 请求 #$index 被取消');
+              _logger.debug('[竞速订阅] 请求 #$index 被取消');
               throw CancellationException('Request cancelled');
             }
             throw e;
           });
 
       if (cancelToken.isCancelled) {
-        XBoardLogger.debug('[竞速订阅] 请求 #$index 完成但已被取消');
+        _logger.debug('[竞速订阅] 请求 #$index 完成但已被取消');
         throw CancellationException('Request cancelled after completion');
       }
 
       if (result.success) {
-        XBoardLogger.info('[竞速订阅] 请求 #$index 获胜! 用时: ${result.originalUrl}');
+        _logger.info('[竞速订阅] 请求 #$index 获胜! 用时: ${result.originalUrl}');
       }
 
       return result;
     } catch (e) {
       if (e is CancellationException) {
-        XBoardLogger.debug('[竞速订阅] 请求 #$index 被正常取消');
+        _logger.debug('[竞速订阅] 请求 #$index 被正常取消');
         return SubscriptionResult.failure('请求被取消');
       }
       
-      XBoardLogger.debug('[竞速订阅] 请求 #$index 失败: $e');
+      _logger.debug('[竞速订阅] 请求 #$index 失败: $e');
       return SubscriptionResult.failure('请求失败: $e');
     }
   }
@@ -276,7 +279,7 @@ class ConcurrentSubscriptionService {
         return SubscriptionResult.failure(dataResult.error!);
       }
 
-      XBoardLogger.debug('[竞速订阅] 获取到数据，长度: ${dataResult.data!.length}');
+      _logger.debug('[竞速订阅] 获取到数据，长度: ${dataResult.data!.length}');
 
       // 2. 解密数据
       final decryptKey = await ConfigFileLoaderHelper.getDecryptKey();

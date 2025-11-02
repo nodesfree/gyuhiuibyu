@@ -6,6 +6,9 @@ import 'package:fl_clash/xboard/features/online_support/models/message_model.dar
 import 'package:fl_clash/xboard/features/online_support/services/service_config.dart';
 import 'package:http/http.dart' as http;
 
+// 初始化文件级日志器
+final _logger = FileLogger('api_service.dart');
+
 /// 客服系统API服务类
 class CustomerSupportApiService {
   final String baseUrl;
@@ -27,8 +30,8 @@ class CustomerSupportApiService {
     required Map<String, String> headers,
     String? body,
   }) async {
-    XBoardLogger.debug('发起${method.toUpperCase()}请求: $url');
-    XBoardLogger.debug('请求头: $headers');
+    _logger.debug('发起${method.toUpperCase()}请求: $url');
+    _logger.debug('请求头: $headers');
     
     final uri = Uri.parse(url);
     
@@ -50,14 +53,14 @@ class CustomerSupportApiService {
       // 获取token
       final token = await CustomerSupportServiceConfig.getUserToken();
       if (token == null) {
-        XBoardLogger.error(appLocalizations.onlineSupportSendMessageFailed);
+        _logger.error(appLocalizations.onlineSupportSendMessageFailed);
         return null;
       }
 
       final url = '$baseUrl/messages/';
       final requestBody = {'content': content};
 
-      XBoardLogger.debug('OnlineSupportApiService', '发送消息请求详情: URL: $url, Headers: {Content-Type: application/json, Authorization: $token}, Body: ${jsonEncode(requestBody)}');
+      _logger.debug('OnlineSupportApiService', '发送消息请求详情: URL: $url, Headers: {Content-Type: application/json, Authorization: $token}, Body: ${jsonEncode(requestBody)}');
 
       final response = await _httpClient.post(
         Uri.parse(url),
@@ -68,18 +71,18 @@ class CustomerSupportApiService {
         body: jsonEncode(requestBody),
       );
 
-      XBoardLogger.debug('发送消息响应详情: Status: ${response.statusCode}, Body: ${response.body}', null);
+      _logger.debug('发送消息响应详情: Status: ${response.statusCode}, Body: ${response.body}', null);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
-        XBoardLogger.info('发送消息成功');
+        _logger.info('发送消息成功');
         return ChatMessage.fromJson(data);
       } else {
-        XBoardLogger.error('发送消息失败: ${response.statusCode} ${response.body}');
+        _logger.error('发送消息失败: ${response.statusCode} ${response.body}');
         return null;
       }
     } catch (e) {
-      XBoardLogger.error('发送消息异常', e);
+      _logger.error('发送消息异常', e);
       return null;
     }
   }
@@ -98,7 +101,7 @@ class CustomerSupportApiService {
 
       final url = '$baseUrl/messages/?limit=$limit&offset=$offset';
       
-      XBoardLogger.debug('获取消息历史请求详情: URL: $url, Token: $token, Headers: {Authorization: $token, Content-Type: application/json}', null);
+      _logger.debug('获取消息历史请求详情: URL: $url, Token: $token, Headers: {Authorization: $token, Content-Type: application/json}', null);
 
       final headers = {
         'Authorization': token,
@@ -107,7 +110,7 @@ class CustomerSupportApiService {
 
       final response = await _makeRequest('get', url, headers: headers);
 
-      XBoardLogger.debug('获取消息历史响应详情: Status: ${response.statusCode}, Body: ${response.body}', null);
+      _logger.debug('获取消息历史响应详情: Status: ${response.statusCode}, Body: ${response.body}', null);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -124,20 +127,20 @@ class CustomerSupportApiService {
                 final bytes = latin1.encode(content); // 先按Latin-1编码成字节
                 items[i]['content'] = utf8.decode(bytes); // 再按UTF-8解码
               } catch (e) {
-                XBoardLogger.error('编码修复失败', e);
+                _logger.error('编码修复失败', e);
               }
             }
           }
         }
 
-        XBoardLogger.info('获取消息历史成功，共 ${data['items']?.length ?? 0} 条消息');
+        _logger.info('获取消息历史成功，共 ${data['items']?.length ?? 0} 条消息');
         return MessageListResponse.fromJson(data);
       } else {
-        XBoardLogger.error('获取消息历史失败: ${response.statusCode} ${response.body}');
+        _logger.error('获取消息历史失败: ${response.statusCode} ${response.body}');
         throw Exception(appLocalizations.onlineSupportGetMessagesFailed(response.statusCode));
       }
     } catch (e) {
-      XBoardLogger.error('获取消息历史异常', e);
+      _logger.error('获取消息历史异常', e);
       rethrow;
     }
   }
@@ -148,13 +151,13 @@ class CustomerSupportApiService {
       // 获取token
       final token = await CustomerSupportServiceConfig.getUserToken();
       if (token == null) {
-        XBoardLogger.error(appLocalizations.onlineSupportSendMessageFailed);
+        _logger.error(appLocalizations.onlineSupportSendMessageFailed);
         return 0;
       }
 
       final url = '$baseUrl/messages/unread';
       
-      XBoardLogger.debug('获取未读消息数请求详情: URL: $url, Headers: {Authorization: $token}', null);
+      _logger.debug('获取未读消息数请求详情: URL: $url, Headers: {Authorization: $token}', null);
 
       final headers = {
         'Authorization': token,
@@ -163,18 +166,18 @@ class CustomerSupportApiService {
 
       final response = await _makeRequest('get', url, headers: headers);
 
-      XBoardLogger.debug('获取未读消息数响应详情: Status: ${response.statusCode}, Body: ${response.body}', null);
+      _logger.debug('获取未读消息数响应详情: Status: ${response.statusCode}, Body: ${response.body}', null);
 
       if (response.statusCode == 200) {
         final count = int.tryParse(response.body) ?? 0;
-        XBoardLogger.info('获取未读消息数成功: $count');
+        _logger.info('获取未读消息数成功: $count');
         return count;
       } else {
-        XBoardLogger.error('获取未读消息数失败: ${response.statusCode} ${response.body}');
+        _logger.error('获取未读消息数失败: ${response.statusCode} ${response.body}');
         return 0;
       }
     } catch (e) {
-      XBoardLogger.error('获取未读消息数异常', e);
+      _logger.error('获取未读消息数异常', e);
       return 0;
     }
   }
@@ -194,7 +197,7 @@ class CustomerSupportApiService {
         'message_ids': messageIds,
       };
       
-      XBoardLogger.debug('OnlineSupportApiService', '标记消息已读请求详情: URL: $url, Headers: {Content-Type: application/json, Authorization: $token}, Body: ${jsonEncode(requestBody)}');
+      _logger.debug('OnlineSupportApiService', '标记消息已读请求详情: URL: $url, Headers: {Content-Type: application/json, Authorization: $token}, Body: ${jsonEncode(requestBody)}');
 
       final response = await _httpClient.post(
         Uri.parse(url),
@@ -205,19 +208,19 @@ class CustomerSupportApiService {
         body: jsonEncode(requestBody),
       );
 
-      XBoardLogger.debug('标记消息已读响应详情: Status: ${response.statusCode}, Body: ${response.body}', null);
+      _logger.debug('标记消息已读响应详情: Status: ${response.statusCode}, Body: ${response.body}', null);
 
       if (response.statusCode != 200) {
-        XBoardLogger.error('标记消息已读失败: ${response.statusCode} ${response.body}');
+        _logger.error('标记消息已读失败: ${response.statusCode} ${response.body}');
         
         // 尝试其他可能的API路径
         await _tryAlternativeMarkReadApis(messageIds, token);
         return;
       }
       
-      XBoardLogger.info('标记消息已读成功');
+      _logger.info('标记消息已读成功');
     } catch (e) {
-      XBoardLogger.error('标记消息已读异常', e);
+      _logger.error('标记消息已读异常', e);
       rethrow;
     }
   }
@@ -225,8 +228,8 @@ class CustomerSupportApiService {
   /// 尝试其他可能的标记已读API路径
   Future<void> _tryAlternativeMarkReadApis(List<String> messageIds, String token) async {
     // 后端源码显示WebSocket也支持标记已读，但我们专注于HTTP API
-    XBoardLogger.debug('尝试WebSocket标记已读...');
-    XBoardLogger.info('注意：后端标记已读功能主要在WebSocket中实现');
+    _logger.debug('尝试WebSocket标记已读...');
+    _logger.info('注意：后端标记已读功能主要在WebSocket中实现');
     
     final alternativeEndpoints = [
       '/messages/read/',           // 可能的路径1
@@ -238,7 +241,7 @@ class CustomerSupportApiService {
     for (final endpoint in alternativeEndpoints) {
       try {
         final url = '$baseUrl$endpoint';
-        XBoardLogger.debug('尝试备用API路径: $url');
+        _logger.debug('尝试备用API路径: $url');
         
         final response = await _httpClient.post(
           Uri.parse(url),
@@ -251,18 +254,18 @@ class CustomerSupportApiService {
           }),
         );
 
-        XBoardLogger.debug('备用API响应: ${response.statusCode} ${response.body}');
+        _logger.debug('备用API响应: ${response.statusCode} ${response.body}');
 
         if (response.statusCode == 200 || response.statusCode == 201) {
-          XBoardLogger.info('备用API路径成功: $endpoint');
+          _logger.info('备用API路径成功: $endpoint');
           return;
         }
       } catch (e) {
-        XBoardLogger.error('备用API路径失败 $endpoint', e);
+        _logger.error('备用API路径失败 $endpoint', e);
       }
     }
 
-    XBoardLogger.error('所有标记已读API路径都失败了');
+    _logger.error('所有标记已读API路径都失败了');
     // 不抛出异常，让调用者处理失败情况
   }
 
@@ -275,7 +278,7 @@ class CustomerSupportApiService {
       // 获取token
       final token = await CustomerSupportServiceConfig.getUserToken();
       if (token == null) {
-        XBoardLogger.error(appLocalizations.onlineSupportSendMessageFailed);
+        _logger.error(appLocalizations.onlineSupportSendMessageFailed);
         return null;
       }
 
@@ -285,7 +288,7 @@ class CustomerSupportApiService {
         'attachment_ids': attachmentIds,
       };
 
-      XBoardLogger.debug('OnlineSupportApiService', '发送带附件消息请求详情: URL: $url, Headers: {Content-Type: application/json, Authorization: $token}, Body: ${jsonEncode(requestBody)}');
+      _logger.debug('OnlineSupportApiService', '发送带附件消息请求详情: URL: $url, Headers: {Content-Type: application/json, Authorization: $token}, Body: ${jsonEncode(requestBody)}');
 
       final response = await _httpClient.post(
         Uri.parse(url),
@@ -296,18 +299,18 @@ class CustomerSupportApiService {
         body: jsonEncode(requestBody),
       );
 
-      XBoardLogger.debug('发送带附件消息响应详情: Status: ${response.statusCode}, Body: ${response.body}', null);
+      _logger.debug('发送带附件消息响应详情: Status: ${response.statusCode}, Body: ${response.body}', null);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
-        XBoardLogger.info('发送带附件消息成功');
+        _logger.info('发送带附件消息成功');
         return ChatMessage.fromJson(data);
       } else {
-        XBoardLogger.error('发送带附件消息失败: ${response.statusCode} ${response.body}');
+        _logger.error('发送带附件消息失败: ${response.statusCode} ${response.body}');
         return null;
       }
     } catch (e) {
-      XBoardLogger.error('发送带附件消息异常', e);
+      _logger.error('发送带附件消息异常', e);
       return null;
     }
   }

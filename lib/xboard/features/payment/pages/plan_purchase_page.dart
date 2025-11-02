@@ -17,6 +17,9 @@ import '../widgets/price_summary_card.dart';
 import '../models/payment_step.dart';
 import '../utils/price_calculator.dart';
 
+// 初始化文件级日志器
+final _logger = FileLogger('plan_purchase_page.dart');
+
 /// 套餐购买页面
 class PlanPurchasePage extends ConsumerStatefulWidget {
   final PlanData plan;
@@ -289,7 +292,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
 
     try {
       String? tradeNo;
-      XBoardLogger.debug('[购买] 开始购买流程，套餐ID: ${widget.plan.id}, 周期: $_selectedPeriod');
+      _logger.debug('[购买] 开始购买流程，套餐ID: ${widget.plan.id}, 周期: $_selectedPeriod');
 
       // 显示支付等待页面
       if (mounted) {
@@ -298,7 +301,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       }
 
       // 创建订单
-      XBoardLogger.debug('[购买] 创建订单');
+      _logger.debug('[购买] 创建订单');
       PaymentWaitingManager.updateStep(PaymentStep.createOrder);
       
       final paymentNotifier = ref.read(xboardPaymentProvider.notifier);
@@ -313,7 +316,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
         throw Exception('${AppLocalizations.of(context).xboardOrderCreationFailed}: $errorMessage');
       }
 
-      XBoardLogger.debug('[购买] 订单创建成功: $tradeNo');
+      _logger.debug('[购买] 订单创建成功: $tradeNo');
       PaymentWaitingManager.updateTradeNo(tradeNo);
 
       // 获取支付方式
@@ -329,7 +332,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       // 提交支付
       await _submitPayment(tradeNo, selectedMethod);
     } catch (e) {
-      XBoardLogger.error('购买流程出错: $e');
+      _logger.error('购买流程出错: $e');
         if (mounted) {
         PaymentWaitingManager.hide();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -352,12 +355,12 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   }
 
   void _handlePaymentSuccess() {
-    XBoardLogger.debug('[支付成功] 处理支付成功回调');
+    _logger.debug('[支付成功] 处理支付成功回调');
               try {
                 final userProvider = ref.read(xboardUserProvider.notifier);
                 userProvider.refreshSubscriptionInfoAfterPayment();
               } catch (e) {
-      XBoardLogger.debug('[支付成功] 刷新订阅信息失败: $e');
+      _logger.debug('[支付成功] 刷新订阅信息失败: $e');
               }
 
               Future.delayed(const Duration(milliseconds: 300), () {
@@ -365,7 +368,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
                   try {
                     Navigator.of(context).popUntil((route) => route.isFirst);
                   } catch (e) {
-          XBoardLogger.debug('[支付成功] 导航失败: $e');
+          _logger.debug('[支付成功] 导航失败: $e');
                   }
                 }
               });
@@ -388,7 +391,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     );
 
     if (selected == null) {
-      XBoardLogger.debug('[支付] 用户取消选择支付方式');
+      _logger.debug('[支付] 用户取消选择支付方式');
       return null;
     }
 
@@ -400,7 +403,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   }
 
   Future<void> _submitPayment(String tradeNo, PaymentMethod method) async {
-    XBoardLogger.debug('[支付] 提交支付: $tradeNo, 方式: ${method.id}');
+    _logger.debug('[支付] 提交支付: $tradeNo, 方式: ${method.id}');
       PaymentWaitingManager.updateStep(PaymentStep.loadingPayment);
       PaymentWaitingManager.updateStep(PaymentStep.verifyPayment);
 
@@ -433,14 +436,14 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   }
 
   Future<void> _handleBalancePaymentSuccess() async {
-    XBoardLogger.debug('[支付] 余额支付成功');
+    _logger.debug('[支付] 余额支付成功');
           PaymentWaitingManager.hide();
           
           try {
             final userProvider = ref.read(xboardUserProvider.notifier);
             userProvider.refreshSubscriptionInfoAfterPayment();
           } catch (e) {
-      XBoardLogger.debug('[余额支付] 刷新订阅信息失败: $e');
+      _logger.debug('[余额支付] 刷新订阅信息失败: $e');
           }
           
           if (mounted) {
@@ -457,7 +460,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
                 try {
                   Navigator.of(context).popUntil((route) => route.isFirst);
                 } catch (e) {
-            XBoardLogger.debug('[余额支付] 导航失败: $e');
+            _logger.debug('[余额支付] 导航失败: $e');
                 }
               }
             });
@@ -484,7 +487,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
           throw Exception('无法启动外部浏览器');
       }
 
-      XBoardLogger.debug('[支付] 支付页面已在浏览器中打开: $tradeNo');
+      _logger.debug('[支付] 支付页面已在浏览器中打开: $tradeNo');
     } catch (e) {
       if (mounted) {
         PaymentWaitingManager.hide();

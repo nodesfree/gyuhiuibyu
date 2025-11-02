@@ -5,6 +5,9 @@ import 'package:fl_clash/xboard/core/core.dart';
 
 import '../utils/node_id_manager.dart';
 import 'package:web_socket_channel/io.dart';
+
+// 初始化文件级日志器
+final _logger = FileLogger('status_reporting_service.dart');
 class StatusReportingService {
   final String _wsUrl;
   final String? authToken;
@@ -23,12 +26,12 @@ class StatusReportingService {
     
     // 获取node_id并构建完整的WebSocket URL
     final nodeId = await NodeIdManager.getNodeId();
-    XBoardLogger.debug('原始WebSocket URL: $_wsUrl');
-    XBoardLogger.debug('Node ID: $nodeId');
+    _logger.debug('原始WebSocket URL: $_wsUrl');
+    _logger.debug('Node ID: $nodeId');
     final fullWsUrl = _wsUrl.endsWith('/') ? '${_wsUrl}$nodeId' : '$_wsUrl/$nodeId';
-    XBoardLogger.debug('完整WebSocket URL: $fullWsUrl');
+    _logger.debug('完整WebSocket URL: $fullWsUrl');
     
-    XBoardLogger.info('尝试连接 WebSocket: $fullWsUrl (Node ID: $nodeId)');
+    _logger.info('尝试连接 WebSocket: $fullWsUrl (Node ID: $nodeId)');
     try {
       Map<String, String> headers = {};
       if (authToken != null) {
@@ -56,7 +59,7 @@ class StatusReportingService {
       _sendIdentification();
       _startHeartbeat(); // 立即开始心跳
     } catch (e) {
-      XBoardLogger.error('WebSocket 初始连接时发生同步错误', e);
+      _logger.error('WebSocket 初始连接时发生同步错误', e);
       _scheduleReconnect();
     }
   }
@@ -72,9 +75,9 @@ class StatusReportingService {
       try {
         final message = jsonEncode(identityPayload);
         _channel!.sink.add(message);
-        XBoardLogger.debug('WebSocket 发送身份识别消息: $message');
+        _logger.debug('WebSocket 发送身份识别消息: $message');
       } catch (e) {
-        XBoardLogger.error('WebSocket 发送身份识别消息失败', e);
+        _logger.error('WebSocket 发送身份识别消息失败', e);
       }
     }
   }
@@ -82,19 +85,19 @@ class StatusReportingService {
     if (!_isConnected) {
       _isConnected = true;
       onStatusChange?.call(true);
-      XBoardLogger.info('WebSocket 已成功连接到: $_wsUrl');
+      _logger.info('WebSocket 已成功连接到: $_wsUrl');
     }
-    XBoardLogger.debug('WebSocket 接收到消息: $message');
+    _logger.debug('WebSocket 接收到消息: $message');
     if (message is String) {
       onMessageReceivedCallback?.call(message);
     }
   }
   void _onError(dynamic error) {
-    XBoardLogger.error('WebSocket 连接错误', error);
+    _logger.error('WebSocket 连接错误', error);
     _handleDisconnect(isError: true);
   }
   void _onDisconnected() {
-    XBoardLogger.info('WebSocket 连接已由对端关闭');
+    _logger.info('WebSocket 连接已由对端关闭');
     _handleDisconnect(isError: false);
   }
   void _handleDisconnect({required bool isError}) {
@@ -102,9 +105,9 @@ class StatusReportingService {
       return;
     }
     if (_isConnected) {
-      XBoardLogger.info('WebSocket 已断开连接');
+      _logger.info('WebSocket 已断开连接');
     } else if (isError) {
-      XBoardLogger.warning('WebSocket 连接失败');
+      _logger.warning('WebSocket 连接失败');
     }
     _isConnected = false;
     onStatusChange?.call(false);
@@ -118,7 +121,7 @@ class StatusReportingService {
   void _scheduleReconnect() {
     if (_isDisposed) return;
     _reconnectTimer?.cancel();
-    XBoardLogger.info('计划在 5 秒后重新连接');
+    _logger.info('计划在 5 秒后重新连接');
     _reconnectTimer = Timer(const Duration(seconds: 5), connect);
   }
   void dispose() {
@@ -131,18 +134,18 @@ class StatusReportingService {
       _isConnected = false;
       onStatusChange?.call(false);
     }
-    XBoardLogger.info('StatusReportingService 已释放');
+    _logger.info('StatusReportingService 已释放');
   }
   void sendMessage(String message) {
     if (_isConnected && _channel != null) {
       try {
         _channel!.sink.add(message);
-        XBoardLogger.debug('WebSocket 发送消息: $message');
+        _logger.debug('WebSocket 发送消息: $message');
       } catch (e) {
-        XBoardLogger.error('WebSocket 发送消息失败', e);
+        _logger.error('WebSocket 发送消息失败', e);
       }
     } else {
-      XBoardLogger.warning('WebSocket 未连接，无法发送消息: $message');
+      _logger.warning('WebSocket 未连接，无法发送消息: $message');
     }
   }
   void _sendPing() {
@@ -151,9 +154,9 @@ class StatusReportingService {
         final pingPayload = {'event': 'ping'};
         final message = jsonEncode(pingPayload);
         _channel!.sink.add(message);
-        XBoardLogger.debug('WebSocket 发送心跳: $message');
+        _logger.debug('WebSocket 发送心跳: $message');
       } catch (e) {
-        XBoardLogger.error('WebSocket 发送心跳失败', e);
+        _logger.error('WebSocket 发送心跳失败', e);
       }
     }
   }

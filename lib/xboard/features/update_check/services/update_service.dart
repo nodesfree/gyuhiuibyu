@@ -7,12 +7,15 @@ import 'package:dio/io.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:fl_clash/common/common.dart';
 
+// 初始化文件级日志器
+final _logger = FileLogger('update_service.dart');
+
 class UpdateService {
   /// Get the best update server URL from configuration
   Future<String> _getServerUrl() async {
     final updateUrl = XBoardConfig.updateUrl;
     if (updateUrl != null && updateUrl.isNotEmpty) {
-      XBoardLogger.info('从配置获取更新URL: $updateUrl');
+      _logger.info('从配置获取更新URL: $updateUrl');
       return updateUrl;
     }
     
@@ -27,7 +30,7 @@ class UpdateService {
       throw Exception(appLocalizations.updateCheckNoServerUrlsConfigured);
     }
     
-    XBoardLogger.info('从配置获取到 ${configUrls.length} 个更新URL');
+    _logger.info('从配置获取到 ${configUrls.length} 个更新URL');
     return configUrls;
   }
 
@@ -37,10 +40,10 @@ class UpdateService {
     
     for (int i = 0; i < serverUrls.length; i++) {
       try {
-        XBoardLogger.info('尝试更新服务器 ${i + 1}/${serverUrls.length}: ${serverUrls[i]}');
+        _logger.info('尝试更新服务器 ${i + 1}/${serverUrls.length}: ${serverUrls[i]}');
         return await _checkForUpdatesFromUrl(serverUrls[i]);
       } catch (e) {
-        XBoardLogger.error('更新服务器 ${serverUrls[i]} 失败', e);
+        _logger.error('更新服务器 ${serverUrls[i]} 失败', e);
         if (i == serverUrls.length - 1) {
           // 最后一个服务器也失败了，抛出异常
           rethrow;
@@ -60,7 +63,7 @@ class UpdateService {
     final dio = Dio();
     final requestUrl = '$serverUrl/api/v1/check-update?version=$currentVersion&platform=$platform';
     
-    XBoardLogger.info('发送更新检查请求: $requestUrl');
+    _logger.info('发送更新检查请求: $requestUrl');
     dio.options.connectTimeout = const Duration(seconds: 15);
     dio.options.receiveTimeout = const Duration(seconds: 15);
     dio.options.validateStatus = (status) {
@@ -71,7 +74,7 @@ class UpdateService {
       final client = HttpClient();
       if (kDebugMode) {
         client.badCertificateCallback = (X509Certificate cert, String host, int port) {
-          XBoardLogger.debug('忽略SSL证书验证: $host:$port');
+          _logger.debug('忽略SSL证书验证: $host:$port');
           return true;
         };
       }

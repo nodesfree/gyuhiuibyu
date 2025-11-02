@@ -27,8 +27,7 @@ import 'package:flutter_xboard_sdk/flutter_xboard_sdk.dart' as sdk;
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/xboard/config/interface/config_provider_interface.dart';
 
-// 初始化文件级日志器
-final _logger = FileLogger('xboard_sdk.dart');
+
 
 // ========== 核心客户端 ==========
 export 'src/xboard_client.dart';
@@ -42,6 +41,8 @@ export 'package:flutter_xboard_sdk/flutter_xboard_sdk.dart'
 // ========== 工具类 ==========
 export 'src/utils/subscription_url_transformer.dart';
 
+// 初始化文件级日志器
+final _logger = FileLogger('xboard_sdk.dart');
 // ========== 为了向后兼容，提供类型别名 ==========
 typedef UserInfoData = sdk.UserInfo;
 typedef SubscriptionData = sdk.SubscriptionInfo;

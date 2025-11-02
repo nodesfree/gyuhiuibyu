@@ -3,6 +3,9 @@ import 'package:fl_clash/xboard/config/core/service_locator.dart';
 import 'package:fl_clash/xboard/config/services/online_support_service.dart';
 import 'package:fl_clash/xboard/sdk/xboard_sdk.dart';
 
+// 初始化文件级日志器
+final _logger = FileLogger('service_config.dart');
+
 /// 客服系统服务配置
 class CustomerSupportServiceConfig {
   static OnlineSupportService? _service;
@@ -13,7 +16,7 @@ class CustomerSupportServiceConfig {
       try {
         _service = ServiceLocator.get<OnlineSupportService>();
       } catch (e) {
-        XBoardLogger.error('Failed to get OnlineSupportService', e);
+        _logger.error('Failed to get OnlineSupportService', e);
         // 服务不可用时，_service 保持为 null，将使用默认值
       }
     }
@@ -36,10 +39,10 @@ class CustomerSupportServiceConfig {
     try {
       
       final token = await XBoardSDK.getAuthToken();
-      XBoardLogger.debug('getUserToken() 获取到的token: $token');
+      _logger.debug('getUserToken() 获取到的token: $token');
       return token;
     } catch (e) {
-      XBoardLogger.error('getUserToken() 获取token失败', e);
+      _logger.error('getUserToken() 获取token失败', e);
       // 如果获取失败，返回null
       return null;
     }

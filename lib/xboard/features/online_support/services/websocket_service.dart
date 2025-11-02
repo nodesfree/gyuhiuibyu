@@ -4,6 +4,9 @@ import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/xboard/features/online_support/services/service_config.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+// 初始化文件级日志器
+final _logger = FileLogger('websocket_service.dart');
+
 /// WebSocket连接状态枚举
 enum WebSocketStatus {
   connecting,
@@ -103,13 +106,13 @@ class CustomerSupportWebSocketService {
   }) async {
     if (_isDisposed) return;
     if (_isConnected && !forceReconnect) {
-      XBoardLogger.warning('WebSocket已连接，请先断开');
+      _logger.warning('WebSocket已连接，请先断开');
       return;
     }
 
     // 如果是强制重连，先断开现有连接
     if (forceReconnect && _isConnected) {
-      XBoardLogger.info('强制重连：断开现有WebSocket连接');
+      _logger.info('强制重连：断开现有WebSocket连接');
       await _disconnect(shouldReconnect: isReconnect);
     }
 
@@ -121,7 +124,7 @@ class CustomerSupportWebSocketService {
 
       if (token == null) {
         _updateStatus(WebSocketStatus.error);
-        XBoardLogger.error(
+        _logger.error(
             'WebSocket连接失败: 无法获取用户token');
         _reconnect();
         return;
@@ -141,13 +144,13 @@ class CustomerSupportWebSocketService {
           _handleMessage(message);
         },
         onError: (error) {
-          XBoardLogger.error(
+          _logger.error(
               'WebSocket错误，准备重连', error);
           _updateStatus(WebSocketStatus.error);
           _disconnect(shouldReconnect: true);
         },
         onDone: () {
-          XBoardLogger.info(
+          _logger.info(
               'WebSocket连接已关闭，准备重连');
           _updateStatus(WebSocketStatus.disconnected);
           _disconnect(shouldReconnect: true);
@@ -157,7 +160,7 @@ class CustomerSupportWebSocketService {
       // 启动心跳检测
       _startHeartbeat();
     } catch (e) {
-      XBoardLogger.error('WebSocket连接异常，准备重连', e);
+      _logger.error('WebSocket连接异常，准备重连', e);
       _updateStatus(WebSocketStatus.error);
       _reconnect();
     }
@@ -180,7 +183,7 @@ class CustomerSupportWebSocketService {
 
     final duration = Duration(seconds: 5 * (_reconnectAttempts + 1));
     _reconnectTimer = Timer(duration, () {
-      XBoardLogger.info(
+      _logger.info(
           '$_reconnectAttempts次尝试重连WebSocket...');
       connect(forceReconnect: true, isReconnect: true);
       _reconnectAttempts++;
@@ -190,7 +193,7 @@ class CustomerSupportWebSocketService {
   /// 发送文本消息
   void sendMessage(String content) {
     if (!_isConnected || _channel == null) {
-      XBoardLogger.warning('WebSocket未连接，无法发送消息');
+      _logger.warning('WebSocket未连接，无法发送消息');
       return;
     }
 
@@ -205,7 +208,7 @@ class CustomerSupportWebSocketService {
   /// 发送带附件的消息
   void sendMessageWithAttachments(String content, List<int> attachmentIds) {
     if (!_isConnected || _channel == null) {
-      XBoardLogger.warning('WebSocket未连接，无法发送带附件消息');
+      _logger.warning('WebSocket未连接，无法发送带附件消息');
       return;
     }
 
@@ -215,7 +218,7 @@ class CustomerSupportWebSocketService {
       'attachment_ids': attachmentIds,
     };
 
-    XBoardLogger.debug(
+    _logger.debug(
         'WebSocket发送带附件消息: ${jsonEncode(message)}');
     _channel!.sink.add(jsonEncode(message));
   }
@@ -223,7 +226,7 @@ class CustomerSupportWebSocketService {
   /// 标记消息为已读
   void markMessagesAsRead(List<int> messageIds) {
     if (!_isConnected || _channel == null) {
-      XBoardLogger.warning('WebSocket未连接，无法标记消息');
+      _logger.warning('WebSocket未连接，无法标记消息');
       return;
     }
 
@@ -233,7 +236,7 @@ class CustomerSupportWebSocketService {
     };
 
     final messageJson = jsonEncode(message);
-    XBoardLogger.debug(
+    _logger.debug(
         'WebSocket发送标记已读消息: $messageJson');
     _channel!.sink.add(messageJson);
   }
@@ -243,16 +246,16 @@ class CustomerSupportWebSocketService {
     try {
       // 确保消息是字符串类型
       final String messageStr = message.toString();
-      XBoardLogger.debug(
+      _logger.debug(
           'WebSocket原始消息: $messageStr');
 
       // 解析JSON
       final data = jsonDecode(messageStr) as Map<String, dynamic>;
       final wsMessage = WebSocketMessage.fromJson(data);
 
-      XBoardLogger.debug(
+      _logger.debug(
           'WebSocket消息类型: ${wsMessage.type}');
-      XBoardLogger.debug(
+      _logger.debug(
           'WebSocket消息数据: ${wsMessage.data}');
 
       // 处理连接建立消息
@@ -260,20 +263,20 @@ class CustomerSupportWebSocketService {
         _isConnected = true;
         _reconnectAttempts = 0;
         _updateStatus(WebSocketStatus.connected);
-        XBoardLogger.info('WebSocket连接已建立');
+        _logger.info('WebSocket连接已建立');
       }
 
       // 处理标记已读确认
       if (wsMessage.type == WebSocketMessageType.messageRead) {
-        XBoardLogger.info(
+        _logger.info(
             '收到标记已读确认: ${wsMessage.data}');
       }
 
       // 将消息传递给监听器
       _messageController.add(wsMessage);
     } catch (e) {
-      XBoardLogger.error('处理WebSocket消息异常', e);
-      XBoardLogger.debug('原始消息: $message');
+      _logger.error('处理WebSocket消息异常', e);
+      _logger.debug('原始消息: $message');
     }
   }
 

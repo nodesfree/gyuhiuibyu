@@ -11,6 +11,9 @@ import 'package:fl_clash/xboard/features/online_support/services/websocket_servi
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+// 初始化文件级日志器
+final _logger = FileLogger('chat_provider.dart');
+
 /// 客服聊天状态类
 class ChatState {
   final List<ChatMessage> messages;
@@ -63,7 +66,7 @@ bool _isUserOnSupportPage = false;
 /// 设置用户是否在在线客服页面
 void setUserOnSupportPage(bool isOnPage) {
   _isUserOnSupportPage = isOnPage;
-  XBoardLogger.debug('在线客服页面可见性: $isOnPage');
+  _logger.debug('在线客服页面可见性: $isOnPage');
 }
 
 /// 客服聊天Notifier
@@ -102,7 +105,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
       // 连接状态由 wsConnectionStatusProvider 直接提供给 UI
       // 不再需要在这里监听状态或手动连接
     } catch (e) {
-      XBoardLogger.error('初始化异常', e);
+      _logger.error('初始化异常', e);
       state = state.copyWith(
         isLoading: false,
         isError: true,
@@ -141,7 +144,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
       // 发送成功，清除发送状态
       state = state.copyWith(isSending: false);
     } catch (e) {
-      XBoardLogger.error('发送消息异常', e);
+      _logger.error('发送消息异常', e);
       // 发送失败时不移除本地消息，但显示错误提示
       state = state.copyWith(
         isSending: false,
@@ -197,7 +200,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
       // 发送成功，清除发送状态
       state = state.copyWith(isSending: false);
     } catch (e) {
-      XBoardLogger.error('发送带附件消息异常', e);
+      _logger.error('发送带附件消息异常', e);
       // 发送失败时不移除本地消息，但显示错误提示
       state = state.copyWith(
         isSending: false,
@@ -224,7 +227,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
         hasMoreMessages: messages.length == _pageSize,
       );
     } catch (e) {
-      XBoardLogger.error('加载消息历史异常', e);
+      _logger.error('加载消息历史异常', e);
       state = state.copyWith(
         isLoading: false,
         isError: true,
@@ -254,7 +257,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
         hasMoreMessages: moreMessages.length == _pageSize,
       );
     } catch (e) {
-      XBoardLogger.error('加载更多消息异常', e);
+      _logger.error('加载更多消息异常', e);
       state = state.copyWith(
         isLoadingMore: false,
         isError: true,
@@ -269,7 +272,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
       final unreadCount = await _apiService.getUnreadCount();
       state = state.copyWith(unreadCount: unreadCount);
     } catch (e) {
-      XBoardLogger.error('获取未读消息数异常', e);
+      _logger.error('获取未读消息数异常', e);
     }
   }
 
@@ -310,16 +313,16 @@ class ChatNotifier extends StateNotifier<ChatState> {
             .toList();
         
         if (messageIntIds.isNotEmpty) {
-          XBoardLogger.debug('通过WebSocket标记消息已读: $messageIntIds');
+          _logger.debug('通过WebSocket标记消息已读: $messageIntIds');
           _wsService.markMessagesAsRead(messageIntIds);
         }
       } else {
-        XBoardLogger.debug('WebSocket未连接，尝试HTTP API标记已读');
+        _logger.debug('WebSocket未连接，尝试HTTP API标记已读');
         // 如果WebSocket未连接，尝试HTTP API
         await _apiService.markMessagesAsRead(messageIds);
       }
     } catch (e) {
-      XBoardLogger.error('标记消息已读失败', e);
+      _logger.error('标记消息已读失败', e);
       // 即使服务端标记失败，本地状态已经更新，用户体验不受影响
     }
   }
@@ -329,7 +332,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
     try {
       // 检查当前是否在对话页面
       if (_isUserOnSupportPage) {
-        XBoardLogger.debug('用户已在对话页面，跳过通知');
+        _logger.debug('用户已在对话页面，跳过通知');
         return;
       }
 
@@ -346,9 +349,9 @@ class ChatNotifier extends StateNotifier<ChatState> {
         },
       );
 
-      XBoardLogger.debug('已显示应用内通知');
+      _logger.debug('已显示应用内通知');
     } catch (e) {
-      XBoardLogger.error('显示应用内通知失败', e);
+      _logger.error('显示应用内通知失败', e);
     }
   }
 
@@ -362,12 +365,12 @@ class ChatNotifier extends StateNotifier<ChatState> {
             builder: (context) => const OnlineSupportPage(),
           ),
         );
-        XBoardLogger.debug('已跳转到在线客服页面');
+        _logger.debug('已跳转到在线客服页面');
       } else {
-        XBoardLogger.warning('无法获取context，跳转失败');
+        _logger.warning('无法获取context，跳转失败');
       }
     } catch (e) {
-      XBoardLogger.error('跳转到在线客服页面失败', e);
+      _logger.error('跳转到在线客服页面失败', e);
     }
   }
 
@@ -385,7 +388,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
           if (messageData != null) {
             final messageId = messageData['id'] as int? ?? DateTime.now().millisecondsSinceEpoch;
             
-            XBoardLogger.debug('收到新消息: ID=$messageId, 内容=${messageData['content']}', null);
+            _logger.debug('收到新消息: ID=$messageId, 内容=${messageData['content']}', null);
             
             // 检查是否已存在相同ID的消息，避免重复
             final existingMessage = state.messages.any((msg) => msg.id == messageId);
@@ -404,20 +407,20 @@ class ChatNotifier extends StateNotifier<ChatState> {
                 unreadCount: state.unreadCount + 1,
               );
 
-              XBoardLogger.debug('新消息已添加到状态');
+              _logger.debug('新消息已添加到状态');
 
               // 显示应用内通知
               _showInAppNotification(newMessage);
             } else {
-              XBoardLogger.warning('消息ID=$messageId 已存在，跳过');
+              _logger.warning('消息ID=$messageId 已存在，跳过');
             }
           } else {
-            XBoardLogger.error('WebSocket消息格式错误，缺少message字段');
+            _logger.error('WebSocket消息格式错误，缺少message字段');
           }
         }
       },
       onError: (error) {
-        XBoardLogger.error('WebSocket消息监听异常', error);
+        _logger.error('WebSocket消息监听异常', error);
         state = state.copyWith(
           isError: true,
           errorMessage: 'WebSocket消息异常: $error',
@@ -456,7 +459,7 @@ final wsServiceProvider = Provider<CustomerSupportWebSocketService>((ref) {
 
   // 确保 dispose 时清理资源
   ref.onDispose(() {
-    XBoardLogger.info('wsServiceProvider 被销毁,清理 WebSocket 资源', null);
+    _logger.info('wsServiceProvider 被销毁,清理 WebSocket 资源', null);
     service.dispose();
   });
 

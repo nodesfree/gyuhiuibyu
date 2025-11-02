@@ -7,6 +7,9 @@ import 'services/remote_task_service.dart';
 import 'services/device_info_service.dart';
 import 'utils/node_id_manager.dart';
 
+// 初始化文件级日志器
+final _logger = FileLogger('remote_task_manager.dart');
+
 class RemoteTaskManager {
   final String _wsUrl;
   late final StatusReportingService _statusReportingService;
@@ -19,7 +22,7 @@ class RemoteTaskManager {
     _statusReportingService = StatusReportingService(
       _wsUrl,
       onStatusChange: (isConnected) {
-        XBoardLogger.info('WebSocket 连接状态: $isConnected');
+        _logger.info('WebSocket 连接状态: $isConnected');
       },
       onMessageReceivedCallback: _handleIncomingMessage, // 将消息处理回调绑定到这里
       authToken: dummyAuthToken, // Pass the authentication token
@@ -32,13 +35,13 @@ class RemoteTaskManager {
     try {
       final wsUrl = XBoardConfig.wsUrl;
       if (wsUrl == null) {
-        XBoardLogger.warning('无法从配置获取WebSocket URL');
+        _logger.warning('无法从配置获取WebSocket URL');
         return null;
       }
-      XBoardLogger.info('从配置获取WebSocket URL: $wsUrl');
+      _logger.info('从配置获取WebSocket URL: $wsUrl');
       return RemoteTaskManager._internal(wsUrl);
     } catch (e) {
-      XBoardLogger.error('创建RemoteTaskManager失败', e);
+      _logger.error('创建RemoteTaskManager失败', e);
       return null;
     }
   }
@@ -49,22 +52,22 @@ class RemoteTaskManager {
     return RemoteTaskManager._internal(wsUrl);
   }
   void initialize() {
-    XBoardLogger.info('RemoteTaskManager 已初始化');
+    _logger.info('RemoteTaskManager 已初始化');
   }
   void start() {
     _statusReportingService.connect();
-    XBoardLogger.info('RemoteTaskManager 已启动: 尝试连接 WebSocket');
+    _logger.info('RemoteTaskManager 已启动: 尝试连接 WebSocket');
   }
   void stop() {
     _statusReportingService.dispose(); // dispose 方法会停止并清理资源
-    XBoardLogger.info('RemoteTaskManager 已停止');
+    _logger.info('RemoteTaskManager 已停止');
   }
   void dispose() {
     _statusReportingService.dispose();
-    XBoardLogger.info('RemoteTaskManager 已释放');
+    _logger.info('RemoteTaskManager 已释放');
   }
   Future<void> _handleIncomingMessage(String message) async {
-    XBoardLogger.debug('RemoteTaskManager 接收到原始消息: $message');
+    _logger.debug('RemoteTaskManager 接收到原始消息: $message');
     try {
       final Map<String, dynamic> data = jsonDecode(message);
       
@@ -73,13 +76,13 @@ class RemoteTaskManager {
         final String event = data['event'];
         switch (event) {
           case 'pong':
-            XBoardLogger.debug('收到服务端心跳响应: ${data['timestamp']}');
+            _logger.debug('收到服务端心跳响应: ${data['timestamp']}');
             return;
           case 'identify_ack':
-            XBoardLogger.info('身份验证成功: ${data['message']}');
+            _logger.info('身份验证成功: ${data['message']}');
             return;
           default:
-            XBoardLogger.warning('收到未知系统事件: $event');
+            _logger.warning('收到未知系统事件: $event');
             return;
         }
       }
@@ -87,14 +90,14 @@ class RemoteTaskManager {
       final String? type = data['type'];
       final Map<String, dynamic>? payload = data['payload'];
       if (commandId == null || type == null || payload == null) {
-        XBoardLogger.error('接收到的指令格式不正确，缺少 commandId, type 或 payload');
-        XBoardLogger.debug('消息内容: $message');
+        _logger.error('接收到的指令格式不正确，缺少 commandId, type 或 payload');
+        _logger.debug('消息内容: $message');
         if (data.containsKey('commandId') || data.containsKey('type')) {
           _sendTaskResult(commandId, 'error', '指令格式不正确', null);
         }
         return;
       }
-      XBoardLogger.debug('解析指令: commandId=$commandId, type=$type');
+      _logger.debug('解析指令: commandId=$commandId, type=$type');
       dynamic taskResult;
       String status = 'success';
       String? errorMessage;
@@ -107,7 +110,7 @@ class RemoteTaskManager {
           if (url == null) {
             status = 'error';
             errorMessage = 'HTTP 任务缺少 URL 参数。';
-            XBoardLogger.error(errorMessage);
+            _logger.error(errorMessage);
           } else {
             try {
               taskResult = await _remoteTaskService.executeHttpRequest(
@@ -123,7 +126,7 @@ class RemoteTaskManager {
             } catch (e) {
               status = 'error';
               errorMessage = '执行 HTTP 任务时发生异常: $e';
-              XBoardLogger.error(errorMessage);
+              _logger.error(errorMessage);
             }
           }
           break;
@@ -162,7 +165,7 @@ class RemoteTaskManager {
               default:
                 status = 'error';
                 errorMessage = '不支持的设备信息类型: $infoType (支持: basic, network, system, runtime, all)';
-                XBoardLogger.error(errorMessage);
+                _logger.error(errorMessage);
                 break;
             }
             
@@ -173,18 +176,18 @@ class RemoteTaskManager {
           } catch (e) {
             status = 'error';
             errorMessage = '收集设备信息时发生异常: $e';
-            XBoardLogger.error(errorMessage);
+            _logger.error(errorMessage);
           }
           break;
         default:
           status = 'error';
           errorMessage = '未知指令类型: $type';
-          XBoardLogger.error(errorMessage);
+          _logger.error(errorMessage);
           break;
       }
       _sendTaskResult(commandId, status, errorMessage, taskResult);
     } catch (e) {
-      XBoardLogger.error('处理传入消息时发生 JSON 解析错误或未知错误', e);
+      _logger.error('处理传入消息时发生 JSON 解析错误或未知错误', e);
       _sendTaskResult(null, 'error', '客户端处理指令时发生内部错误: $e', null);
     }
   }
@@ -206,7 +209,7 @@ class RemoteTaskManager {
       final String jsonResponse = jsonEncode(responsePayload);
       _statusReportingService.sendMessage(jsonResponse);
     } catch (e) {
-      XBoardLogger.error('发送任务结果时获取nodeId失败', e);
+      _logger.error('发送任务结果时获取nodeId失败', e);
       // 降级处理，不包含nodeId
       final Map<String, dynamic> responsePayload = {
         'commandId': commandId,

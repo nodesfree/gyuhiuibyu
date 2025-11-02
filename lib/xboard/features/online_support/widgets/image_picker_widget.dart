@@ -8,6 +8,9 @@ import 'package:fl_clash/xboard/features/online_support/services/file_upload_ser
 import 'package:fl_clash/xboard/features/online_support/services/service_config.dart';
 import 'package:file_picker/file_picker.dart';
 
+// 初始化文件级日志器
+final _logger = FileLogger('image_picker_widget.dart');
+
 /// 图片选择和预览组件
 class ImagePickerWidget extends StatefulWidget {
   final Function(List<MessageAttachment>) onAttachmentsSelected;
@@ -40,7 +43,7 @@ class _ImagePickerWidgetState extends State<ImagePickerWidget> {
     _uploadService = FileUploadService(
       baseUrl: apiBaseUrl,
     );
-    XBoardLogger.debug('文件上传服务初始化，baseUrl: ${CustomerSupportServiceConfig.apiBaseUrl}');
+    _logger.debug('文件上传服务初始化，baseUrl: ${CustomerSupportServiceConfig.apiBaseUrl}');
   }
 
   @override
@@ -52,7 +55,7 @@ class _ImagePickerWidgetState extends State<ImagePickerWidget> {
   /// 选择图片文件
   Future<void> _pickImages() async {
     try {
-      XBoardLogger.debug('开始选择图片文件...');
+      _logger.debug('开始选择图片文件...');
       
       // 方式1: 使用FileType.image（推荐，系统会自动过滤图片文件）
       final result = await FilePicker.platform.pickFiles(
@@ -70,10 +73,10 @@ class _ImagePickerWidgetState extends State<ImagePickerWidget> {
       // );
 
       if (result != null && result.files.isNotEmpty) {
-        XBoardLogger.info('成功选择 ${result.files.length} 个文件');
+        _logger.info('成功选择 ${result.files.length} 个文件');
         for (int i = 0; i < result.files.length; i++) {
           final file = result.files[i];
-          XBoardLogger.debug('文件${i + 1}: ${file.name} (${file.size} bytes)');
+          _logger.debug('文件${i + 1}: ${file.name} (${file.size} bytes)');
         }
         
         setState(() {
@@ -81,12 +84,12 @@ class _ImagePickerWidgetState extends State<ImagePickerWidget> {
           _errorMessage = null;
         });
       } else {
-        XBoardLogger.info('用户取消选择图片或未选择任何文件');
+        _logger.info('用户取消选择图片或未选择任何文件');
       }
     } catch (e) {
-      XBoardLogger.error('选择图片失败: $e, 错误详情: ${e.runtimeType}', e);
+      _logger.error('选择图片失败: $e, 错误详情: ${e.runtimeType}', e);
       if (e is Error) {
-        XBoardLogger.error('堆栈信息: ${e.stackTrace}');
+        _logger.error('堆栈信息: ${e.stackTrace}');
       }
       
       setState(() {

@@ -4,6 +4,9 @@ import 'package:fl_clash/l10n/l10n.dart';
 import '../models/payment_step.dart';
 import 'package:fl_clash/xboard/sdk/xboard_sdk.dart';
 import 'package:fl_clash/xboard/core/core.dart';
+
+// 初始化文件级日志器
+final _logger = FileLogger('payment_waiting_overlay.dart');
 class PaymentWaitingOverlay extends StatefulWidget {
   final VoidCallback? onClose;
   final VoidCallback? onPaymentSuccess;
@@ -88,7 +91,7 @@ class _PaymentWaitingOverlayState extends State<PaymentWaitingOverlay>
     }
   }
   void _startPaymentStatusCheck() {
-    XBoardLogger.debug('[PaymentWaiting] 开始定时检测支付状态，订单号: $_currentTradeNo');
+    _logger.debug('[PaymentWaiting] 开始定时检测支付状态，订单号: $_currentTradeNo');
     _paymentCheckTimer?.cancel();
     _paymentCheckTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
       if (!mounted || _currentTradeNo == null) {
@@ -96,59 +99,59 @@ class _PaymentWaitingOverlayState extends State<PaymentWaitingOverlay>
         return;
       }
       try {
-        XBoardLogger.debug('[PaymentWaiting] ===== 开始检测支付状态 =====');
-        XBoardLogger.debug('[PaymentWaiting] 订单号: $_currentTradeNo');
+        _logger.debug('[PaymentWaiting] ===== 开始检测支付状态 =====');
+        _logger.debug('[PaymentWaiting] 订单号: $_currentTradeNo');
         
         // 使用域名服务检查订单状态
-        XBoardLogger.debug('[PaymentWaiting] 准备调用 XBoardSDK.getOrderByTradeNo');
+        _logger.debug('[PaymentWaiting] 准备调用 XBoardSDK.getOrderByTradeNo');
         final orderData = await XBoardSDK.getOrderByTradeNo(_currentTradeNo!);
-        XBoardLogger.debug('[PaymentWaiting] API 调用完成，结果: ${orderData != null ? '有数据' : '无数据'}');
+        _logger.debug('[PaymentWaiting] API 调用完成，结果: ${orderData != null ? '有数据' : '无数据'}');
         
         if (orderData != null) {
-          XBoardLogger.debug('[PaymentWaiting] 订单详情 - 订单号: ${orderData.tradeNo}, 状态: ${orderData.status}');
+          _logger.debug('[PaymentWaiting] 订单详情 - 订单号: ${orderData.tradeNo}, 状态: ${orderData.status}');
           // 检查订单状态
           // 状态值: 0-等待中, 3-已完成, 其他-失败
           if (orderData.status == 3) {
             // 支付成功，立即执行成功回调
-            XBoardLogger.debug('[PaymentWaiting] ===== 检测到支付成功！状态: ${orderData.status} =====');
-            XBoardLogger.debug('[PaymentWaiting] 停止定时器');
+            _logger.debug('[PaymentWaiting] ===== 检测到支付成功！状态: ${orderData.status} =====');
+            _logger.debug('[PaymentWaiting] 停止定时器');
             timer.cancel();
             if (mounted) {
-              XBoardLogger.debug('[PaymentWaiting] 组件仍然挂载，开始更新UI状态');
+              _logger.debug('[PaymentWaiting] 组件仍然挂载，开始更新UI状态');
               setState(() {
                 _currentStep = PaymentStep.paymentSuccess;
               });
-              XBoardLogger.debug('[PaymentWaiting] UI状态已更新为: $_currentStep');
+              _logger.debug('[PaymentWaiting] UI状态已更新为: $_currentStep');
               _pulseController.stop();
-              XBoardLogger.debug('[PaymentWaiting] 脉动动画已停止');
+              _logger.debug('[PaymentWaiting] 脉动动画已停止');
               
               // 立即执行成功回调，不等待3秒
               if (widget.onPaymentSuccess != null) {
-                XBoardLogger.debug('[PaymentWaiting] 准备调用 onPaymentSuccess 回调');
+                _logger.debug('[PaymentWaiting] 准备调用 onPaymentSuccess 回调');
                 widget.onPaymentSuccess?.call();
-                XBoardLogger.debug('[PaymentWaiting] onPaymentSuccess 回调已调用');
+                _logger.debug('[PaymentWaiting] onPaymentSuccess 回调已调用');
               } else {
-                XBoardLogger.debug('[PaymentWaiting] 警告：onPaymentSuccess 回调为 null');
+                _logger.debug('[PaymentWaiting] 警告：onPaymentSuccess 回调为 null');
               }
             } else {
-              XBoardLogger.debug('[PaymentWaiting] 警告：组件已卸载，无法执行成功回调');
+              _logger.debug('[PaymentWaiting] 警告：组件已卸载，无法执行成功回调');
             }
           } else if (orderData.status == 0) {
             // 仍在等待支付
-            XBoardLogger.debug('[PaymentWaiting] 支付仍在等待中...');
+            _logger.debug('[PaymentWaiting] 支付仍在等待中...');
           } else {
             // 其他状态视为失败
-            XBoardLogger.debug('[PaymentWaiting] 支付失败，状态: ${orderData.status}');
+            _logger.debug('[PaymentWaiting] 支付失败，状态: ${orderData.status}');
             timer.cancel();
             if (mounted) {
               widget.onClose?.call();
             }
           }
         } else {
-          XBoardLogger.debug('[PaymentWaiting] 获取订单状态失败：订单不存在');
+          _logger.debug('[PaymentWaiting] 获取订单状态失败：订单不存在');
         }
       } catch (e) {
-        XBoardLogger.debug('[PaymentWaiting] 检测支付状态异常: $e');
+        _logger.debug('[PaymentWaiting] 检测支付状态异常: $e');
       }
     });
   }
@@ -335,13 +338,13 @@ class PaymentWaitingManager {
     VoidCallback? onPaymentSuccess,
     String? tradeNo,
   }) {
-    XBoardLogger.debug('[PaymentWaitingManager.show] 准备显示支付等待弹窗');
-    XBoardLogger.debug('[PaymentWaitingManager.show] onClose 是否为 null: ${onClose == null}');
-    XBoardLogger.debug('[PaymentWaitingManager.show] onPaymentSuccess 是否为 null: ${onPaymentSuccess == null}');
+    _logger.debug('[PaymentWaitingManager.show] 准备显示支付等待弹窗');
+    _logger.debug('[PaymentWaitingManager.show] onClose 是否为 null: ${onClose == null}');
+    _logger.debug('[PaymentWaitingManager.show] onPaymentSuccess 是否为 null: ${onPaymentSuccess == null}');
     hide(); // 确保之前的overlay被清除
     _onClose = onClose;
     _onPaymentSuccess = onPaymentSuccess;
-    XBoardLogger.debug('[PaymentWaitingManager.show] 静态变量已设置，_onPaymentSuccess 是否为 null: ${_onPaymentSuccess == null}');
+    _logger.debug('[PaymentWaitingManager.show] 静态变量已设置，_onPaymentSuccess 是否为 null: ${_onPaymentSuccess == null}');
     _overlayKey = GlobalKey<_PaymentWaitingOverlayState>();
     _overlayEntry = OverlayEntry(
       builder: (context) => PaymentWaitingOverlay(
@@ -351,18 +354,18 @@ class PaymentWaitingManager {
           _onClose?.call();
         },
         onPaymentSuccess: () {
-          XBoardLogger.debug('[PaymentWaitingManager] 收到支付成功通知，准备处理');
+          _logger.debug('[PaymentWaitingManager] 收到支付成功通知，准备处理');
           // 先保存回调，再隐藏弹窗（因为hide()会清空回调）
           final callback = _onPaymentSuccess;
-          XBoardLogger.debug('[PaymentWaitingManager] 保存的回调是否为 null: ${callback == null}');
+          _logger.debug('[PaymentWaitingManager] 保存的回调是否为 null: ${callback == null}');
           hide();
-          XBoardLogger.debug('[PaymentWaitingManager] 弹窗已隐藏，准备调用外部回调');
+          _logger.debug('[PaymentWaitingManager] 弹窗已隐藏，准备调用外部回调');
           if (callback != null) {
-            XBoardLogger.debug('[PaymentWaitingManager] 外部回调存在，开始调用');
+            _logger.debug('[PaymentWaitingManager] 外部回调存在，开始调用');
             callback.call();
-            XBoardLogger.debug('[PaymentWaitingManager] 外部回调调用完成');
+            _logger.debug('[PaymentWaitingManager] 外部回调调用完成');
           } else {
-            XBoardLogger.debug('[PaymentWaitingManager] 警告：外部回调为 null');
+            _logger.debug('[PaymentWaitingManager] 警告：外部回调为 null');
           }
         },
         tradeNo: tradeNo,

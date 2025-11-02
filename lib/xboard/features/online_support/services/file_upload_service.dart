@@ -8,6 +8,9 @@ import 'package:fl_clash/xboard/features/online_support/services/service_config.
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
+// 初始化文件级日志器
+final _logger = FileLogger('file_upload_service.dart');
+
 /// 上传结果模型
 class UploadResult {
   final bool success;
@@ -85,25 +88,25 @@ class FileUploadService {
       );
       request.files.add(multipartFile);
 
-      XBoardLogger.debug('上传文件请求详情: URL: $uri, 文件名: $fileName, 文件大小: ${fileBytes.length} bytes, MIME类型: $mimeType', null);
+      _logger.debug('上传文件请求详情: URL: $uri, 文件名: $fileName, 文件大小: ${fileBytes.length} bytes, MIME类型: $mimeType', null);
 
       // 发送请求
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
-      XBoardLogger.debug('上传文件响应详情: Status: ${response.statusCode}, Body: ${response.body}', null);
+      _logger.debug('上传文件响应详情: Status: ${response.statusCode}, Body: ${response.body}', null);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         final attachment = MessageAttachment.fromJson(data);
-        XBoardLogger.info('文件上传成功: ${attachment.filename}');
+        _logger.info('文件上传成功: ${attachment.filename}');
         return UploadResult.success(attachment: attachment);
       } else {
-        XBoardLogger.error('文件上传失败: ${response.statusCode} ${response.body}');
+        _logger.error('文件上传失败: ${response.statusCode} ${response.body}');
         return UploadResult.failure('文件上传失败: ${response.statusCode}');
       }
     } catch (e) {
-      XBoardLogger.error('文件上传异常', e);
+      _logger.error('文件上传异常', e);
       return UploadResult.failure('文件上传异常: $e');
     }
   }
@@ -145,27 +148,27 @@ class FileUploadService {
         request.files.add(multipartFile);
       }
 
-      XBoardLogger.debug('批量上传文件请求详情: URL: $uri, 文件数量: ${files.length}', null);
+      _logger.debug('批量上传文件请求详情: URL: $uri, 文件数量: ${files.length}', null);
 
       // 发送请求
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
-      XBoardLogger.debug('批量上传文件响应详情: Status: ${response.statusCode}, Body: ${response.body}', null);
+      _logger.debug('批量上传文件响应详情: Status: ${response.statusCode}, Body: ${response.body}', null);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         final attachmentList = (data['attachments'] as List)
             .map((item) => MessageAttachment.fromJson(item as Map<String, dynamic>))
             .toList();
-        XBoardLogger.info('批量上传成功，共 ${attachmentList.length} 个文件');
+        _logger.info('批量上传成功，共 ${attachmentList.length} 个文件');
         return UploadResult.success(attachments: attachmentList);
       } else {
-        XBoardLogger.error('批量上传失败: ${response.statusCode} ${response.body}');
+        _logger.error('批量上传失败: ${response.statusCode} ${response.body}');
         return UploadResult.failure('批量上传失败: ${response.statusCode}');
       }
     } catch (e) {
-      XBoardLogger.error('批量上传异常', e);
+      _logger.error('批量上传异常', e);
       return UploadResult.failure('批量上传异常: $e');
     }
   }
@@ -205,7 +208,7 @@ class FileUploadService {
         mimeType: mimeType,
       );
     } catch (e) {
-      XBoardLogger.error('从路径上传文件异常', e);
+      _logger.error('从路径上传文件异常', e);
       return UploadResult.failure('从路径上传文件异常: $e');
     }
   }
@@ -237,7 +240,7 @@ class FileUploadService {
     try {
       final token = await CustomerSupportServiceConfig.getUserToken();
       if (token == null) {
-        XBoardLogger.error('获取文件信息失败: 无法获取认证token');
+        _logger.error('获取文件信息失败: 无法获取认证token');
         return null;
       }
 
@@ -250,17 +253,17 @@ class FileUploadService {
         },
       );
 
-      XBoardLogger.debug('获取文件信息响应: ${response.statusCode} ${response.body}');
+      _logger.debug('获取文件信息响应: ${response.statusCode} ${response.body}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         return MessageAttachment.fromJson(data);
       } else {
-        XBoardLogger.error('获取文件信息失败: ${response.statusCode}');
+        _logger.error('获取文件信息失败: ${response.statusCode}');
         return null;
       }
     } catch (e) {
-      XBoardLogger.error('获取文件信息异常', e);
+      _logger.error('获取文件信息异常', e);
       return null;
     }
   }
@@ -270,7 +273,7 @@ class FileUploadService {
     try {
       final token = await CustomerSupportServiceConfig.getUserToken();
       if (token == null) {
-        XBoardLogger.error('删除文件失败: 无法获取认证token');
+        _logger.error('删除文件失败: 无法获取认证token');
         return false;
       }
 
@@ -283,17 +286,17 @@ class FileUploadService {
         },
       );
 
-      XBoardLogger.debug('删除文件响应: ${response.statusCode} ${response.body}');
+      _logger.debug('删除文件响应: ${response.statusCode} ${response.body}');
 
       if (response.statusCode == 200) {
-        XBoardLogger.info('文件删除成功');
+        _logger.info('文件删除成功');
         return true;
       } else {
-        XBoardLogger.error('文件删除失败: ${response.statusCode}');
+        _logger.error('文件删除失败: ${response.statusCode}');
         return false;
       }
     } catch (e) {
-      XBoardLogger.error('文件删除异常', e);
+      _logger.error('文件删除异常', e);
       return false;
     }
   }

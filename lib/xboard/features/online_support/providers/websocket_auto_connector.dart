@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/xboard/features/online_support/providers/chat_provider.dart';
 import 'package:fl_clash/xboard/features/auth/auth.dart';
 
+// 初始化文件级日志器
+final _logger = FileLogger('websocket_auto_connector.dart');
+
 /// WebSocket 自动连接器
 ///
 /// 职责:
@@ -27,7 +30,7 @@ final webSocketAutoConnectorProvider = Provider<void>((ref) {
 
       // 从未登录到已登录 → 连接 WebSocket
       if (!wasAuthenticated && isAuthenticated) {
-        XBoardLogger.info(
+        _logger.info(
           'WebSocketAutoConnector',
           '检测到登录成功,自动启动 WebSocket 连接',
         );
@@ -35,7 +38,7 @@ final webSocketAutoConnectorProvider = Provider<void>((ref) {
       }
       // 从已登录到未登录 → 断开 WebSocket
       else if (wasAuthenticated && !isAuthenticated) {
-        XBoardLogger.info(
+        _logger.info(
           'WebSocketAutoConnector',
           '检测到登出,自动断开 WebSocket 连接',
         );
@@ -48,7 +51,7 @@ final webSocketAutoConnectorProvider = Provider<void>((ref) {
   // 如果用户已登录(例如应用重启后通过 quickAuth 恢复登录状态),则立即连接
   final currentAuthState = ref.read(xboardUserAuthProvider);
   if (currentAuthState.isAuthenticated) {
-    XBoardLogger.info(
+    _logger.info(
       'WebSocketAutoConnector',
       '初始化检测到已登录状态,启动 WebSocket 连接',
     );

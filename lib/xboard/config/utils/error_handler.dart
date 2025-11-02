@@ -1,5 +1,8 @@
 import '../../core/core.dart';
 
+// 初始化文件级日志器
+final _logger = FileLogger('error_handler.dart');
+
 /// 错误类型
 enum ErrorType {
   network,
@@ -56,7 +59,7 @@ class ErrorHandler {
       errorMessage = 'Network error: ${error.toString()}';
     }
 
-    NetworkLogger.error('Network error occurred', error);
+    _logger.error('Network error occurred', error);
     
     return ErrorHandleResult.failure(errorMessage, ErrorType.network);
   }
@@ -73,7 +76,7 @@ class ErrorHandler {
       errorMessage = 'Parsing error: ${error.toString()}';
     }
 
-    ConfigLogger.error('Parsing error occurred', error);
+    _logger.error('Parsing error occurred', error);
     
     return ErrorHandleResult.failure(errorMessage, ErrorType.parsing);
   }
@@ -82,7 +85,7 @@ class ErrorHandler {
   static ErrorHandleResult<T> handleValidationError<T>(dynamic error) {
     final errorMessage = 'Validation error: ${error.toString()}';
     
-    ConfigLogger.error('Validation error occurred', error);
+    _logger.error('Validation error occurred', error);
     
     return ErrorHandleResult.failure(errorMessage, ErrorType.validation);
   }
@@ -99,7 +102,7 @@ class ErrorHandler {
       errorMessage = 'Cache error: ${error.toString()}';
     }
 
-    XBoardLogger.warning('Cache error occurred', error);
+    _logger.warning('Cache error occurred', error);
     
     return ErrorHandleResult.failure(errorMessage, ErrorType.cache);
   }
@@ -129,7 +132,7 @@ class ErrorHandler {
     }
 
     final errorMessage = 'Unknown error: ${error.toString()}';
-    XBoardLogger.error('Unknown error occurred', error);
+    _logger.error('Unknown error occurred', error);
     
     return ErrorHandleResult.failure(errorMessage, ErrorType.unknown);
   }
@@ -152,7 +155,7 @@ class ErrorHandler {
         
         // 检查是否应该重试
         if (attempt < maxRetries && (shouldRetry?.call(error) ?? _defaultShouldRetry(error))) {
-          XBoardLogger.warning('ErrorHandler', 'Operation failed, retrying in ${delay.inSeconds}s (attempt ${attempt + 1}/$maxRetries)');
+          _logger.warning('ErrorHandler', 'Operation failed, retrying in ${delay.inSeconds}s (attempt ${attempt + 1}/$maxRetries)');
           await Future.delayed(delay);
           continue;
         }
@@ -198,7 +201,7 @@ class ErrorHandler {
       final handleResult = handleError<T>(error);
       
       if (fallback != null) {
-        XBoardLogger.info('ErrorHandler', 'Using fallback value due to error');
+        _logger.info('ErrorHandler', 'Using fallback value due to error');
         return ErrorHandleResult.success(fallback);
       }
       
@@ -209,6 +212,6 @@ class ErrorHandler {
   /// 记录并忽略错误
   static void logAndIgnore(dynamic error, [String? context]) {
     final message = context != null ? '$context: $error' : error.toString();
-    XBoardLogger.warning('Error ignored: $message', error);
+    _logger.warning('Error ignored: $message', error);
   }
 }

@@ -9,6 +9,8 @@ import '../models/subscription_info.dart';
 import '../fetchers/remote_config_manager.dart';
 import '../../core/core.dart';
 
+// 初始化文件级日志器
+final _logger = FileLogger('xboard_config_accessor.dart');
 
 import '../parsers/configuration_parser.dart';
 import '../services/panel_service.dart';
@@ -126,7 +128,7 @@ class XBoardConfigAccessor {
     } catch (e) {
       _lastError = 'Configuration refresh failed: $e';
       await _updateState(ConfigAccessorState.error);
-      ConfigLogger.error('Configuration refresh failed', e);
+      _logger.error('Configuration refresh failed', e);
     }
   }
 
@@ -171,13 +173,13 @@ class XBoardConfigAccessor {
     } catch (e) {
       _lastError = 'Refresh from $sourceName failed: $e';
       await _updateState(ConfigAccessorState.error);
-      ConfigLogger.error('Refresh from $sourceName failed', e);
+      _logger.error('Refresh from $sourceName failed', e);
     }
   }
 
   /// 清除缓存（已移除缓存功能）
   Future<void> clearCache() async {
-    ConfigLogger.info('Cache functionality removed, using real-time data');
+    _logger.info('Cache functionality removed, using real-time data');
   }
 
   // ========== 服务数据分发方法 ==========
@@ -320,7 +322,7 @@ class XBoardConfigAccessor {
       // 发送配置更新事件
       _configStreamController.add(_currentConfig!);
 
-      ConfigLogger.info('Configuration loaded from $source');
+      _logger.info('Configuration loaded from $source');
     } catch (e) {
       throw Exception('Failed to process config data: $e');
     }

@@ -5,6 +5,9 @@ import 'package:encrypt/encrypt.dart';
 import '../core/config_settings.dart';
 import '../../core/core.dart';
 
+// 初始化文件级日志器
+final _logger = FileLogger('remote_config_manager.dart');
+
 /// 远程配置状态枚举
 enum RemoteConfigStatus {
   uninitialized,
@@ -159,20 +162,20 @@ class RedirectConfigSource implements ConfigSource {
   @override
   Future<ConfigResult<Map<String, dynamic>>> fetchConfig() async {
     try {
-      NetworkLogger.info('开始获取重定向配置源: $redirectUrl');
+      _logger.info('开始获取重定向配置源: $redirectUrl');
       final rawData = await _httpClient.getString(redirectUrl, timeout: timeout);
 
       if (rawData == null || rawData.trim().isEmpty) {
-        NetworkLogger.error('重定向配置源获取失败: 数据为空');
+        _logger.error('重定向配置源获取失败: 数据为空');
         return ConfigResult.failure("重定向配置源获取失败", sourceName);
       }
 
       final jsonData = json.decode(rawData.trim()) as Map<String, dynamic>;
-      NetworkLogger.info('重定向配置源获取成功');
+      _logger.info('重定向配置源获取成功');
       return ConfigResult.success(jsonData, sourceName);
 
     } catch (e) {
-      NetworkLogger.error('重定向配置源异常', e);
+      _logger.error('重定向配置源异常', e);
       return ConfigResult.failure("重定向配置源异常: ${e.toString()}", sourceName);
     }
   }

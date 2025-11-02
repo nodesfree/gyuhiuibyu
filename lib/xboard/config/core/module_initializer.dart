@@ -6,6 +6,9 @@ import '../internal/xboard_config_accessor.dart';
 import '../services/online_support_service.dart';
 import '../../core/core.dart';
 
+// 初始化文件级日志器
+final _logger = FileLogger('module_initializer.dart');
+
 /// 模块初始化器（内部类）
 /// 
 /// 负责初始化所有模块和依赖注入
@@ -16,7 +19,7 @@ class ModuleInitializer {
   /// 初始化模块
   static Future<void> initialize({ConfigSettings? settings}) async {
     if (_isInitialized) {
-      ConfigLogger.warning('Module already initialized');
+      _logger.warning('Module already initialized');
       return;
     }
 
@@ -32,8 +35,8 @@ class ModuleInitializer {
       // 配置日志
       _configureLogger(config.log);
 
-      ConfigLogger.info('Initializing XBoard Config Module V2');
-      ConfigLogger.info('Current provider: ${config.currentProvider}');
+      _logger.info('Initializing XBoard Config Module V2');
+      _logger.info('Current provider: ${config.currentProvider}');
 
       // 注册服务
       await _registerServices(config);
@@ -42,16 +45,16 @@ class ModuleInitializer {
       ServiceLocator.markInitialized();
       _isInitialized = true;
 
-      ConfigLogger.info('Module initialization completed');
+      _logger.info('Module initialization completed');
     } catch (e) {
-      ConfigLogger.error('Module initialization failed', e);
+      _logger.error('Module initialization failed', e);
       rethrow;
     }
   }
 
   /// 重置模块
   static void reset() {
-    ConfigLogger.info('Resetting module');
+    _logger.info('Resetting module');
     ServiceLocator.reset();
     _isInitialized = false;
   }
@@ -72,19 +75,19 @@ class ModuleInitializer {
     // 注意：新的XBoardLogger不再需要setEnabled和setMinLevel
     // 日志始终启用，通过LoggerInterface控制输出
     // 可以通过XBoardLogger.setLogger()来替换日志实现
-    ConfigLogger.debug('Logger配置：${logSettings.level}');
+    _logger.debug('Logger配置：${logSettings.level}');
   }
 
   /// 注册服务
   static Future<void> _registerServices(ConfigSettings config) async {
-    ConfigLogger.debug('Registering services');
+    _logger.debug('Registering services');
 
     // 注册配置设置
     ServiceLocator.registerSingleton<ConfigSettings>(config);
 
     // 注册远程配置管理器
     ServiceLocator.registerLazySingleton<RemoteConfigManager>(() {
-      ConfigLogger.info('Creating RemoteConfigManager with ${config.remoteConfig.sources.length} sources');
+      _logger.info('Creating RemoteConfigManager with ${config.remoteConfig.sources.length} sources');
       return RemoteConfigManager.fromSettings(config.remoteConfig);
     });
 
@@ -113,12 +116,12 @@ class ModuleInitializer {
         final configs = accessor.getOnlineSupportConfigs();
         return OnlineSupportService(configs);
       } catch (e) {
-        ServiceLogger.warning('Failed to initialize OnlineSupportService, using empty config', e);
+        _logger.warning('Failed to initialize OnlineSupportService, using empty config', e);
         return OnlineSupportService([]);
       }
     });
 
-    ConfigLogger.debug('Services registered successfully');
+    _logger.debug('Services registered successfully');
   }
 
   /// 预热服务
@@ -127,16 +130,16 @@ class ModuleInitializer {
       throw StateError('Module not initialized');
     }
 
-    ConfigLogger.info('Warming up services');
+    _logger.info('Warming up services');
 
     try {
       // 预热配置访问器
       final accessor = ServiceLocator.get<XBoardConfigAccessor>();
       await accessor.refreshConfiguration();
 
-      ConfigLogger.info('Services warmed up successfully');
+      _logger.info('Services warmed up successfully');
     } catch (e) {
-      ConfigLogger.warning('Service warm-up failed', e);
+      _logger.warning('Service warm-up failed', e);
       // 不抛出异常，允许模块继续工作
     }
   }

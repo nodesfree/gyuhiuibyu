@@ -8,16 +8,15 @@ import '../models/online_support_info.dart';
 import '../models/subscription_info.dart';
 import '../fetchers/remote_config_manager.dart';
 import '../../core/core.dart';
-
-// 初始化文件级日志器
-final _logger = FileLogger('xboard_config_accessor.dart');
-
 import '../parsers/configuration_parser.dart';
 import '../services/panel_service.dart';
 import '../services/proxy_service.dart';
 import '../services/websocket_service.dart';
 import '../services/update_service.dart';
 import '../services/online_support_service.dart';
+
+// 初始化文件级日志器
+final _logger = FileLogger('xboard_config_accessor.dart');
 
 /// 配置访问器状态
 enum ConfigAccessorState {

@@ -2,6 +2,9 @@ import 'package:dio/dio.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'user_agent_config.dart';
 
+// 初始化文件级日志器
+final _logger = FileLogger('xboard_http_client.dart');
+
 /// XBoard 统一 HTTP 客户端配置
 class XBoardHttpConfig {
   // ========== 超时配置 ==========

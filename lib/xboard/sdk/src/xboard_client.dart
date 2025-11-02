@@ -5,6 +5,9 @@ import 'package:fl_clash/xboard/config/interface/config_provider_interface.dart'
 import 'package:fl_clash/xboard/config/utils/config_file_loader.dart';
 import 'package:fl_clash/xboard/infrastructure/http/user_agent_config.dart';
 
+// 初始化文件级日志器
+final _logger = FileLogger('xboard_client.dart');
+
 /// 简化的 XBoard 客户端
 ///
 /// 这是一个轻量级的 SDK 封装类，负责：
@@ -59,7 +62,7 @@ class XBoardClient {
     _initCompleter = Completer<void>();
 
     try {
-      XBoardLogger.info('[SDK] 开始初始化 XBoardClient，策略: $strategy');
+      _logger.info('[SDK] 开始初始化 XBoardClient，策略: $strategy');
 
       // 保存配置提供者
       _configProvider = configProvider;
@@ -79,10 +82,10 @@ class XBoardClient {
         // 根据策略选择面板URL
         if (strategy == 'race_fastest') {
           panelUrl = await _configProvider!.getFastestPanelUrl();
-          XBoardLogger.info('[SDK] 使用竞速模式选择面板地址: $panelUrl');
+          _logger.info('[SDK] 使用竞速模式选择面板地址: $panelUrl');
         } else {
           panelUrl = _configProvider!.getPanelUrl();
-          XBoardLogger.info('[SDK] 使用默认模式选择面板地址: $panelUrl');
+          _logger.info('[SDK] 使用默认模式选择面板地址: $panelUrl');
         }
       }
 
@@ -94,9 +97,9 @@ class XBoardClient {
       }
 
       // 从配置文件加载 HTTP 配置
-      XBoardLogger.info('[SDK] 正在从配置文件加载 HTTP 配置...');
+      _logger.info('[SDK] 正在从配置文件加载 HTTP 配置...');
       final httpConfig = await _loadHttpConfigFromFile();
-      XBoardLogger.info('[SDK] HTTP 配置加载完成: UA=${httpConfig.userAgent != null ? "已设置" : "默认"}, '
+      _logger.info('[SDK] HTTP 配置加载完成: UA=${httpConfig.userAgent != null ? "已设置" : "默认"}, '
           '混淆前缀=${httpConfig.obfuscationPrefix != null ? "已设置" : "未设置"}');
 
       // 初始化 SDK（传递 httpConfig）
@@ -106,9 +109,9 @@ class XBoardClient {
 
       _isInitialized = true;
       _initCompleter!.complete();
-      XBoardLogger.info('[SDK] XBoardClient 初始化完成');
+      _logger.info('[SDK] XBoardClient 初始化完成');
     } catch (e) {
-      XBoardLogger.error('[SDK] XBoardClient 初始化失败', e);
+      _logger.error('[SDK] XBoardClient 初始化失败', e);
       _initCompleter!.completeError(e);
       _isInitialized = false;
       rethrow;
@@ -148,24 +151,24 @@ class XBoardClient {
   /// 切换到最快的面板URL（重新竞速）
   Future<void> switchToFastestDomain() async {
     if (_configProvider == null) {
-      XBoardLogger.warning('[SDK] 没有配置提供者，无法切换域名');
+      _logger.warning('[SDK] 没有配置提供者，无法切换域名');
       return;
     }
 
-    XBoardLogger.info('[SDK] 开始切换到最快的面板URL');
+    _logger.info('[SDK] 开始切换到最快的面板URL');
     
     final fastestUrl = await _configProvider!.getFastestPanelUrl();
     if (fastestUrl == null) {
-      XBoardLogger.warning('[SDK] 无法获取最快的面板URL');
+      _logger.warning('[SDK] 无法获取最快的面板URL');
       return;
     }
 
     if (fastestUrl == _currentPanelUrl) {
-      XBoardLogger.info('[SDK] 当前URL已经是最快的: $fastestUrl');
+      _logger.info('[SDK] 当前URL已经是最快的: $fastestUrl');
       return;
     }
 
-    XBoardLogger.info('[SDK] 切换面板URL: $_currentPanelUrl -> $fastestUrl');
+    _logger.info('[SDK] 切换面板URL: $_currentPanelUrl -> $fastestUrl');
     
     // 重新初始化SDK
     _isInitialized = false;
@@ -198,7 +201,7 @@ class XBoardClient {
         enableCertificatePinning: false,
       );
     } catch (e) {
-      XBoardLogger.error('[SDK] 加载 HTTP 配置失败，使用默认配置', e);
+      _logger.error('[SDK] 加载 HTTP 配置失败，使用默认配置', e);
       // 如果加载失败，返回默认配置
       return HttpConfig.defaultConfig();
     }
@@ -206,7 +209,7 @@ class XBoardClient {
 
   /// 释放资源
   void dispose() {
-    XBoardLogger.info('[SDK] 释放 XBoardClient 资源');
+    _logger.info('[SDK] 释放 XBoardClient 资源');
     _sdk = null;
     _currentPanelUrl = null;
     _isInitialized = false;

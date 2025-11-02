@@ -9,6 +9,9 @@ import 'package:flutter/services.dart';
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/xboard/infrastructure/http/user_agent_config.dart';
 
+// 初始化文件级日志器
+final _logger = FileLogger('domain_racing_service.dart');
+
 /// 域名竞速服务
 class DomainRacingService {
   static const Duration _connectionTimeout = Duration(seconds: 5);
@@ -32,7 +35,7 @@ class DomainRacingService {
     }
 
     try {
-      XBoardLogger.info('[域名竞速] 加载自定义CA证书');
+      _logger.info('[域名竞速] 加载自定义CA证书');
 
       // 获取证书路径（优先使用配置文件中的路径）
       String certPath = _configuredCertPath ?? 
@@ -47,11 +50,11 @@ class DomainRacingService {
       context.setTrustedCertificatesBytes(certBytes);
 
       _securityContext = context;
-      XBoardLogger.info('[域名竞速] CA证书加载成功');
+      _logger.info('[域名竞速] CA证书加载成功');
 
       return _securityContext!;
     } catch (e) {
-      XBoardLogger.error('[域名竞速] CA证书加载失败', e);
+      _logger.error('[域名竞速] CA证书加载失败', e);
       // 回退到默认SecurityContext
       _securityContext = SecurityContext.defaultContext;
       return _securityContext!;
@@ -73,7 +76,7 @@ class DomainRacingService {
     if (domains.isEmpty) return null;
     if (domains.length == 1) return domains.first;
 
-    XBoardLogger.info('[域名竞速] 开始竞速测试 ${domains.length} 个域名');
+    _logger.info('[域名竞速] 开始竞速测试 ${domains.length} 个域名');
 
     // 创建并发测试任务
     final List<Future<DomainTestResult>> futures = [];
@@ -97,7 +100,7 @@ class DomainRacingService {
         futures[i].then((result) {
           if (!completer.isCompleted && result.success) {
             // 第一个成功的获胜
-            XBoardLogger.info(
+            _logger.info(
                 '[域名竞速] 🏆 域名 #$i (${result.domain}) 获胜！响应时间: ${result.responseTime}ms');
             completer.complete(result.domain);
 
@@ -108,14 +111,14 @@ class DomainRacingService {
           } else {
             completedCount++;
             if (result.error != null) {
-              XBoardLogger.info(
+              _logger.info(
                   '[域名竞速] ❌ 域名 #$i (${result.domain}) 失败: ${result.error}, 用时: ${result.responseTime}ms');
               errors.add('域名#$i (${result.domain}): ${result.error}');
             }
 
             // 如果所有测试都完成且都失败了
             if (completedCount == futures.length && !completer.isCompleted) {
-              XBoardLogger.warning('[域名竞速] 所有域名测试都失败: ${errors.join('; ')}');
+              _logger.warning('[域名竞速] 所有域名测试都失败: ${errors.join('; ')}');
               completer.complete(null);
             }
           }
@@ -124,7 +127,7 @@ class DomainRacingService {
           errors.add('域名#$i异常: $e');
 
           if (completedCount == futures.length && !completer.isCompleted) {
-            XBoardLogger.warning('[域名竞速] 所有域名测试都失败: ${errors.join('; ')}');
+            _logger.warning('[域名竞速] 所有域名测试都失败: ${errors.join('; ')}');
             completer.complete(null);
           }
         });
@@ -139,7 +142,7 @@ class DomainRacingService {
 
       return winner;
     } catch (e) {
-      XBoardLogger.error('[域名竞速] 竞速测试异常', e);
+      _logger.error('[域名竞速] 竞速测试异常', e);
       return null;
     }
   }
@@ -154,11 +157,11 @@ class DomainRacingService {
     final stopwatch = Stopwatch()..start();
 
     try {
-      XBoardLogger.info('[域名竞速] 开始测试域名 #$index: $domain');
+      _logger.info('[域名竞速] 开始测试域名 #$index: $domain');
 
       // 构建测试URL
       final testUrl = _buildTestUrl(domain, testPath);
-      XBoardLogger.info('[域名竞速] 域名 #$index 测试URL: $testUrl');
+      _logger.info('[域名竞速] 域名 #$index 测试URL: $testUrl');
 
       // 根据域名类型选择HttpClient配置
       final withoutProtocol = domain.replaceFirst(RegExp(r'^https?://'), '');
@@ -172,15 +175,15 @@ class DomainRacingService {
         // 忽略主机名验证，只验证证书有效性
         client.badCertificateCallback =
             (X509Certificate cert, String host, int port) {
-          XBoardLogger.info('[域名竞速] 忽略主机名验证，只检查证书有效性: $host:$port');
+          _logger.info('[域名竞速] 忽略主机名验证，只检查证书有效性: $host:$port');
           return true; // 接受证书，忽略主机名不匹配
         };
 
-        XBoardLogger.info('[域名竞速] 域名 #$index 使用自定义CA证书(忽略主机名验证)');
+        _logger.info('[域名竞速] 域名 #$index 使用自定义CA证书(忽略主机名验证)');
       } else {
         // 域名：使用默认证书验证
         client = HttpClient();
-        XBoardLogger.info('[域名竞速] 域名 #$index 使用默认证书验证');
+        _logger.info('[域名竞速] 域名 #$index 使用默认证书验证');
       }
 
       client.connectionTimeout = _connectionTimeout;
@@ -193,12 +196,12 @@ class DomainRacingService {
         // IP+端口：使用加密User-Agent（Caddy认证）
         final apiUserAgent = await UserAgentConfig.get(UserAgentScenario.apiEncrypted);
         request.headers.set(HttpHeaders.userAgentHeader, apiUserAgent);
-        XBoardLogger.info('[域名竞速] 域名 #$index 使用加密User-Agent（Caddy认证）');
+        _logger.info('[域名竞速] 域名 #$index 使用加密User-Agent（Caddy认证）');
       } else {
         // 域名：使用域名竞速测试User-Agent
         final domainUserAgent = await UserAgentConfig.get(UserAgentScenario.domainRacingTest);
         request.headers.set(HttpHeaders.userAgentHeader, domainUserAgent);
-        XBoardLogger.info('[域名竞速] 域名 #$index 使用域名竞速测试User-Agent');
+        _logger.info('[域名竞速] 域名 #$index 使用域名竞速测试User-Agent');
       }
       request.headers.set(HttpHeaders.acceptHeader, '*/*');
 
@@ -208,34 +211,34 @@ class DomainRacingService {
       stopwatch.stop();
 
       if (cancelToken.isCancelled) {
-        XBoardLogger.info('[域名竞速] 域名 #$index 测试完成但已被取消');
+        _logger.info('[域名竞速] 域名 #$index 测试完成但已被取消');
         return DomainTestResult.failure(
             domain, '测试被取消', stopwatch.elapsedMilliseconds);
       }
 
       if (response.statusCode >= 200 && response.statusCode < 400) {
-        XBoardLogger.info(
+        _logger.info(
             '[域名竞速] 域名 #$index ($domain) 测试成功，响应时间: ${stopwatch.elapsedMilliseconds}ms');
         return DomainTestResult.success(domain, stopwatch.elapsedMilliseconds);
       } else {
-        XBoardLogger.info('[域名竞速] 域名 #$index ($domain) 返回状态码: ${response.statusCode}');
+        _logger.info('[域名竞速] 域名 #$index ($domain) 返回状态码: ${response.statusCode}');
         return DomainTestResult.failure(
             domain, 'HTTP ${response.statusCode}', stopwatch.elapsedMilliseconds);
       }
     } on TimeoutException {
       stopwatch.stop();
-      XBoardLogger.info('[域名竞速] 域名 #$index ($domain) 超时');
+      _logger.info('[域名竞速] 域名 #$index ($domain) 超时');
       return DomainTestResult.failure(
           domain, '连接超时', stopwatch.elapsedMilliseconds);
     } catch (e) {
       stopwatch.stop();
       if (cancelToken.isCancelled) {
-        XBoardLogger.info('[域名竞速] 域名 #$index ($domain) 被正常取消');
+        _logger.info('[域名竞速] 域名 #$index ($domain) 被正常取消');
         return DomainTestResult.failure(
             domain, '测试被取消', stopwatch.elapsedMilliseconds);
       }
 
-      XBoardLogger.info('[域名竞速] 域名 #$index ($domain) 测试失败: $e');
+      _logger.info('[域名竞速] 域名 #$index ($domain) 测试失败: $e');
       return DomainTestResult.failure(
           domain, '连接失败: $e', stopwatch.elapsedMilliseconds);
     }
@@ -256,9 +259,9 @@ class DomainRacingService {
 
     final withoutProtocol = baseUrl.replaceFirst('https://', '');
     if (_isIpWithPort(withoutProtocol)) {
-      XBoardLogger.info('[域名竞速] IP+端口使用HTTPS+CA证书测试: $baseUrl');
+      _logger.info('[域名竞速] IP+端口使用HTTPS+CA证书测试: $baseUrl');
     } else {
-      XBoardLogger.info('[域名竞速] 域名使用HTTPS测试: $baseUrl');
+      _logger.info('[域名竞速] 域名使用HTTPS测试: $baseUrl');
     }
 
     if (baseUrl.endsWith('/')) {
@@ -307,7 +310,7 @@ class DomainRacingService {
   }) async {
     if (domains.isEmpty) return [];
 
-    XBoardLogger.info('[域名测试] 开始测试 ${domains.length} 个域名的延迟');
+    _logger.info('[域名测试] 开始测试 ${domains.length} 个域名的延迟');
 
     final List<Future<DomainTestResult>> futures =
         domains.asMap().entries.map((entry) {
@@ -328,7 +331,7 @@ class DomainRacingService {
       return 0;
     });
 
-    XBoardLogger.info(
+    _logger.info(
         '[域名测试] 测试完成，成功: ${results.where((r) => r.success).length}/${results.length}');
     return results;
   }

@@ -27,6 +27,9 @@ import 'package:flutter_xboard_sdk/flutter_xboard_sdk.dart' as sdk;
 import 'package:fl_clash/xboard/core/core.dart';
 import 'package:fl_clash/xboard/config/interface/config_provider_interface.dart';
 
+// 初始化文件级日志器
+final _logger = FileLogger('xboard_sdk.dart');
+
 // ========== 核心客户端 ==========
 export 'src/xboard_client.dart';
 
@@ -178,12 +181,12 @@ class XBoardSDK {
       // 使用 loginWithCredentials 方法，它会自动保存 auth_data token
       final success = await _sdk.loginWithCredentials(email, password);
       if (success) {
-        XBoardLogger.info('[SDK] 登录成功，authData token已保存');
+        _logger.info('[SDK] 登录成功，authData token已保存');
         return true;
       }
       return false;
     } catch (e) {
-      XBoardLogger.error('[SDK] 登录失败', e);
+      _logger.error('[SDK] 登录失败', e);
       return false;
     }
   }
@@ -205,7 +208,7 @@ class XBoardSDK {
       // 注册成功后返回null，因为API返回的是generic data
       return null;
     } catch (e) {
-      XBoardLogger.error('[SDK] 注册失败', e);
+      _logger.error('[SDK] 注册失败', e);
       rethrow; // 重新抛出异常以便上层获取详细错误信息
     }
   }
@@ -216,7 +219,7 @@ class XBoardSDK {
       await _sdk.clearToken();
       return true;
     } catch (e) {
-      XBoardLogger.error('[SDK] 登出失败', e);
+      _logger.error('[SDK] 登出失败', e);
       return false;
     }
   }
@@ -235,7 +238,7 @@ class XBoardSDK {
       );
       return result.data ?? false;
     } catch (e) {
-      XBoardLogger.error('[SDK] 重置密码失败', e);
+      _logger.error('[SDK] 重置密码失败', e);
       return false;
     }
   }
@@ -246,7 +249,7 @@ class XBoardSDK {
       final result = await _sdk.sendEmailCode.sendVerificationCode(email);
       return result.success;
     } catch (e) {
-      XBoardLogger.error('[SDK] 发送验证码失败', e);
+      _logger.error('[SDK] 发送验证码失败', e);
       return false;
     }
   }
@@ -265,7 +268,7 @@ class XBoardSDK {
     try {
       return await _sdk.getToken();
     } catch (e) {
-      XBoardLogger.error('[SDK] 获取认证Token失败', e);
+      _logger.error('[SDK] 获取认证Token失败', e);
       return null;
     }
   }
@@ -278,7 +281,7 @@ class XBoardSDK {
       final result = await _sdk.userInfo.getUserInfo();
       return result.data;
     } catch (e) {
-      XBoardLogger.error('[SDK] 获取用户信息失败', e);
+      _logger.error('[SDK] 获取用户信息失败', e);
       return null;
     }
   }
@@ -291,7 +294,7 @@ class XBoardSDK {
       final result = await _sdk.plan.fetchPlans();
       return result.data ?? [];
     } catch (e) {
-      XBoardLogger.error('[SDK] 获取套餐列表失败', e);
+      _logger.error('[SDK] 获取套餐列表失败', e);
       return [];
     }
   }
@@ -304,7 +307,7 @@ class XBoardSDK {
       final result = await _sdk.subscription.getSubscriptionLink();
       return result.data;
     } catch (e) {
-      XBoardLogger.error('[SDK] 获取订阅信息失败', e);
+      _logger.error('[SDK] 获取订阅信息失败', e);
       return null;
     }
   }
@@ -326,7 +329,7 @@ class XBoardSDK {
       // createOrder返回ApiResponse<String>
       return result.data;
     } catch (e) {
-      XBoardLogger.error('[SDK] 创建订单失败', e);
+      _logger.error('[SDK] 创建订单失败', e);
       return null;
     }
   }
@@ -337,7 +340,7 @@ class XBoardSDK {
       final result = await _sdk.order.fetchUserOrders();
       return result.data;
     } catch (e) {
-      XBoardLogger.error('[SDK] 获取订单列表失败', e);
+      _logger.error('[SDK] 获取订单列表失败', e);
       return [];
     }
   }
@@ -348,7 +351,7 @@ class XBoardSDK {
       final result = await _sdk.order.getOrderDetails(tradeNo);
       return result;
     } catch (e) {
-      XBoardLogger.error('[SDK] 获取订单详情失败', e);
+      _logger.error('[SDK] 获取订单详情失败', e);
       return null;
     }
   }
@@ -359,7 +362,7 @@ class XBoardSDK {
       final result = await _sdk.order.cancelOrder(tradeNo);
       return result.success;
     } catch (e) {
-      XBoardLogger.error('[SDK] 取消订单失败', e);
+      _logger.error('[SDK] 取消订单失败', e);
       return false;
     }
   }
@@ -373,7 +376,7 @@ class XBoardSDK {
       // API返回PaymentMethodInfo列表，PaymentMethod是其别名
       return result.data ?? [];
     } catch (e) {
-      XBoardLogger.error('[SDK] 获取支付方式失败', e);
+      _logger.error('[SDK] 获取支付方式失败', e);
       return [];
     }
   }
@@ -399,7 +402,7 @@ class XBoardSDK {
       }
       return null;
     } catch (e) {
-      XBoardLogger.error('[SDK] 提交支付失败', e);
+      _logger.error('[SDK] 提交支付失败', e);
       return null;
     }
   }
@@ -416,7 +419,7 @@ class XBoardSDK {
       }
       return null;
     } catch (e) {
-      XBoardLogger.error('[SDK] 查询支付状态失败', e);
+      _logger.error('[SDK] 查询支付状态失败', e);
       return null;
     }
   }
@@ -429,7 +432,7 @@ class XBoardSDK {
       final result = await _sdk.invite.fetchInviteCodes();
       return result.data;
     } catch (e) {
-      XBoardLogger.error('[SDK] 获取邀请信息失败', e);
+      _logger.error('[SDK] 获取邀请信息失败', e);
       return null;
     }
   }
@@ -445,7 +448,7 @@ class XBoardSDK {
       }
       return null;
     } catch (e) {
-      XBoardLogger.error('[SDK] 生成邀请码失败', e);
+      _logger.error('[SDK] 生成邀请码失败', e);
       return null;
     }
   }
@@ -464,7 +467,7 @@ class XBoardSDK {
       // 直接返回CommissionDetail列表，CommissionHistoryItem是其别名
       return result.data ?? [];
     } catch (e) {
-      XBoardLogger.error('[SDK] 获取佣金历史失败', e);
+      _logger.error('[SDK] 获取佣金历史失败', e);
       return [];
     }
   }
@@ -477,10 +480,10 @@ class XBoardSDK {
   }) async {
     try {
       // SDK中可能没有此方法，返回null
-      XBoardLogger.warning('[SDK] withdrawCommission API未实现');
+      _logger.warning('[SDK] withdrawCommission API未实现');
       return null;
     } catch (e) {
-      XBoardLogger.error('[SDK] 提现佣金失败', e);
+      _logger.error('[SDK] 提现佣金失败', e);
       return null;
     }
   }
@@ -491,10 +494,10 @@ class XBoardSDK {
       double amount) async {
     try {
       // SDK中可能没有此方法，返回null
-      XBoardLogger.warning('[SDK] transferCommissionToBalance API未实现');
+      _logger.warning('[SDK] transferCommissionToBalance API未实现');
       return null;
     } catch (e) {
-      XBoardLogger.error('[SDK] 划转佣金失败', e);
+      _logger.error('[SDK] 划转佣金失败', e);
       return null;
     }
   }
@@ -511,7 +514,7 @@ class XBoardSDK {
       // 返回完整的优惠券数据，包含折扣类型和金额
       return result.data;
     } catch (e) {
-      XBoardLogger.error('[SDK] 验证优惠券失败', e);
+      _logger.error('[SDK] 验证优惠券失败', e);
       return null;
     }
   }
@@ -524,7 +527,7 @@ class XBoardSDK {
       final result = await _sdk.ticket.fetchTickets();
       return result.data ?? [];
     } catch (e) {
-      XBoardLogger.error('[SDK] 获取工单列表失败', e);
+      _logger.error('[SDK] 获取工单列表失败', e);
       return [];
     }
   }
@@ -543,7 +546,7 @@ class XBoardSDK {
       );
       return result.data;
     } catch (e) {
-      XBoardLogger.error('[SDK] 创建工单失败', e);
+      _logger.error('[SDK] 创建工单失败', e);
       return null;
     }
   }
@@ -555,7 +558,7 @@ class XBoardSDK {
       // TicketDetail就是Ticket的别名
       return result.data;
     } catch (e) {
-      XBoardLogger.error('[SDK] 获取工单详情失败', e);
+      _logger.error('[SDK] 获取工单详情失败', e);
       return null;
     }
   }
@@ -572,7 +575,7 @@ class XBoardSDK {
       );
       return result.success;
     } catch (e) {
-      XBoardLogger.error('[SDK] 回复工单失败', e);
+      _logger.error('[SDK] 回复工单失败', e);
       return false;
     }
   }
@@ -583,7 +586,7 @@ class XBoardSDK {
       final result = await _sdk.ticket.closeTicket(id);
       return result.success;
     } catch (e) {
-      XBoardLogger.error('[SDK] 关闭工单失败', e);
+      _logger.error('[SDK] 关闭工单失败', e);
       return false;
     }
   }
@@ -596,7 +599,7 @@ class XBoardSDK {
       final result = await _sdk.notice.fetchNotices();
       return result.data;
     } catch (e) {
-      XBoardLogger.error('[SDK] 获取公告列表失败', e);
+      _logger.error('[SDK] 获取公告列表失败', e);
       return [];
     }
   }
@@ -609,7 +612,7 @@ class XBoardSDK {
       final result = await _sdk.config.getConfig();
       return result.data;
     } catch (e) {
-      XBoardLogger.error('[SDK] 获取配置失败', e);
+      _logger.error('[SDK] 获取配置失败', e);
       return null;
     }
   }
@@ -620,7 +623,7 @@ class XBoardSDK {
       final result = await _sdk.app.fetchDedicatedAppInfo();
       return result.data;
     } catch (e) {
-      XBoardLogger.error('[SDK] 获取应用信息失败', e);
+      _logger.error('[SDK] 获取应用信息失败', e);
       return null;
     }
   }

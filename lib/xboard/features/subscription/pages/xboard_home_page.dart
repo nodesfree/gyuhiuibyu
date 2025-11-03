@@ -79,10 +79,16 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage> {
     return Scaffold(
       appBar: isDesktop ? null : AppBar(
         automaticallyImplyLeading: false,
-        leading: IconButton(
-          icon: const Icon(Icons.support_agent),
-          tooltip: '在线客服',
+        leadingWidth: 120,
+        leading: TextButton.icon(
+          icon: const Icon(Icons.support_agent, size: 20),
+          label: Text(appLocalizations.onlineSupport),
           onPressed: () => context.go('/support'),
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
         ),
         actions: [
           TextButton.icon(

@@ -78,7 +78,6 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage> {
     
     return Scaffold(
       appBar: isDesktop ? null : AppBar(
-        title: const Text('首页'), // 临时硬编码，等国际化文件重新生成后改为 appLocalizations.xboardHome
         automaticallyImplyLeading: false,
         leading: IconButton(
           icon: const Icon(Icons.support_agent),

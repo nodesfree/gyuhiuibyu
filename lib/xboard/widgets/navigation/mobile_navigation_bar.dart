@@ -21,10 +21,6 @@ class MobileNavigationBar extends StatelessWidget {
           label: '首页',
         ),
         NavigationDestination(
-          icon: Icon(Icons.shopping_cart),
-          label: '套餐',
-        ),
-        NavigationDestination(
           icon: Icon(Icons.people),
           label: '邀请',
         ),

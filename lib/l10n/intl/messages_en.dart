@@ -621,7 +621,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "nullTip": m7,
     "numberTip": m8,
     "oneColumn": MessageLookupByLibrary.simpleMessage("One column"),
-    "onlineSupport": MessageLookupByLibrary.simpleMessage("Online Support"),
+    "onlineSupport": MessageLookupByLibrary.simpleMessage("Support"),
     "onlineSupportAddMore": MessageLookupByLibrary.simpleMessage("Add More"),
     "onlineSupportApiConfigNotFound": MessageLookupByLibrary.simpleMessage(
       "Online support API configuration not found, please check configuration",
@@ -1166,6 +1166,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "withdrawalAvailable": MessageLookupByLibrary.simpleMessage(
       "Available commission can be withdrawn",
     ),
+    "xboard": MessageLookupByLibrary.simpleMessage("Home"),
     "xboard24HourCustomerService": MessageLookupByLibrary.simpleMessage(
       "24-hour customer service support",
     ),
@@ -1325,6 +1326,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardHighSpeedNetwork": MessageLookupByLibrary.simpleMessage(
       "High-speed network",
     ),
+    "xboardHome": MessageLookupByLibrary.simpleMessage("Home"),
     "xboardImportFailed": MessageLookupByLibrary.simpleMessage("Import failed"),
     "xboardImportSuccess": MessageLookupByLibrary.simpleMessage(
       "Import successful",
@@ -1490,7 +1492,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardPaymentSuccessful": MessageLookupByLibrary.simpleMessage(
       "🎉 Payment successful!",
     ),
-    "xboardPlanInfo": MessageLookupByLibrary.simpleMessage("Plan Information"),
+    "xboardPlanInfo": MessageLookupByLibrary.simpleMessage("Plans"),
     "xboardPlanNotFound": MessageLookupByLibrary.simpleMessage(
       "Plan not found",
     ),

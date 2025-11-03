@@ -19,50 +19,62 @@ import 'shell_layout.dart';
 
 // 路由列表
 final List<RouteBase> routes = [
-    // Shell Route - 包含侧边栏的主框架
-    ShellRoute(
-      builder: (context, state, child) {
-        return AdaptiveShellLayout(child: child);
+    // StatefulShellRoute - 包含侧边栏的主框架，保持各分支状态
+    StatefulShellRoute.indexedStack(
+      builder: (context, state, navigationShell) {
+        return AdaptiveShellLayout(child: navigationShell);
       },
-      routes: [
-        // 首页 - XBoard 主页
-        GoRoute(
-          path: '/',
-          name: 'home',
-          pageBuilder: (context, state) => const NoTransitionPage(
-            key: ValueKey('home'),
-            child: XBoardHomePage(),
-          ),
+      branches: [
+        // 首页分支
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/',
+              name: 'home',
+              pageBuilder: (context, state) => const NoTransitionPage(
+                child: XBoardHomePage(),
+              ),
+            ),
+          ],
         ),
         
-        // 套餐列表
-        GoRoute(
-          path: '/plans',
-          name: 'plans',
-          pageBuilder: (context, state) => const NoTransitionPage(
-            key: ValueKey('plans'),
-            child: PlansView(),
-          ),
+        // 套餐分支
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/plans',
+              name: 'plans',
+              pageBuilder: (context, state) => const NoTransitionPage(
+                child: PlansView(),
+              ),
+            ),
+          ],
         ),
         
-        // 在线客服
-        GoRoute(
-          path: '/support',
-          name: 'support',
-          pageBuilder: (context, state) => const NoTransitionPage(
-            key: ValueKey('support'),
-            child: OnlineSupportPage(),
-          ),
+        // 在线客服分支
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/support',
+              name: 'support',
+              pageBuilder: (context, state) => const NoTransitionPage(
+                child: OnlineSupportPage(),
+              ),
+            ),
+          ],
         ),
         
-        // 邀请页面
-        GoRoute(
-          path: '/invite',
-          name: 'invite',
-          pageBuilder: (context, state) => const NoTransitionPage(
-            key: ValueKey('invite'),
-            child: InvitePage(),
-          ),
+        // 邀请页面分支
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/invite',
+              name: 'invite',
+              pageBuilder: (context, state) => const NoTransitionPage(
+                child: InvitePage(),
+              ),
+            ),
+          ],
         ),
       ],
     ),

@@ -1464,14 +1464,9 @@ class AppLocalizations {
     return Intl.message('Plans', name: 'plans', desc: '', args: []);
   }
 
-  /// `Online Support`
+  /// `Support`
   String get onlineSupport {
-    return Intl.message(
-      'Online Support',
-      name: 'onlineSupport',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Support', name: 'onlineSupport', desc: '', args: []);
   }
 
   /// `Intranet IP`
@@ -3479,14 +3474,9 @@ class AppLocalizations {
     return Intl.message('None', name: 'xboardNone', desc: '', args: []);
   }
 
-  /// `Plan Information`
+  /// `Plans`
   String get xboardPlanInfo {
-    return Intl.message(
-      'Plan Information',
-      name: 'xboardPlanInfo',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Plans', name: 'xboardPlanInfo', desc: '', args: []);
   }
 
   /// `Subscription purchase`
@@ -6022,6 +6012,16 @@ class AppLocalizations {
   /// `Invite`
   String get invite {
     return Intl.message('Invite', name: 'invite', desc: '', args: []);
+  }
+
+  /// `Home`
+  String get xboard {
+    return Intl.message('Home', name: 'xboard', desc: '', args: []);
+  }
+
+  /// `Home`
+  String get xboardHome {
+    return Intl.message('Home', name: 'xboardHome', desc: '', args: []);
   }
 
   /// `User Center`

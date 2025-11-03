@@ -7,39 +7,19 @@ import 'package:go_router/go_router.dart';
 /// 适配性的 Shell 布局
 /// 桌面端：侧边栏 + 内容区
 /// 移动端：底部导航栏 + 内容区
-class AdaptiveShellLayout extends ConsumerStatefulWidget {
-  final Widget child;
+class AdaptiveShellLayout extends ConsumerWidget {
+  final StatefulNavigationShell child;
 
   const AdaptiveShellLayout({
     super.key,
     required this.child,
   });
 
-  @override
-  ConsumerState<AdaptiveShellLayout> createState() => _AdaptiveShellLayoutState();
-}
-
-class _AdaptiveShellLayoutState extends ConsumerState<AdaptiveShellLayout> {
-  int _getCurrentIndex(BuildContext context, bool isDesktop) {
-    final location = GoRouterState.of(context).uri.path;
-    if (location == '/') return 0;
-    if (location.startsWith('/plans')) return 1;
-    
+  void _onDestinationSelected(BuildContext context, int index, bool isDesktop) {
+    // 使用 go 方法导航，而不是 goBranch
+    // 这样可以确保分支被正确初始化
     if (isDesktop) {
-      // 桌面端：首页、套餐、客服、邀请
-      if (location.startsWith('/support')) return 2;
-      if (location.startsWith('/invite')) return 3;
-    } else {
-      // 移动端：首页、套餐、邀请（无客服）
-      if (location.startsWith('/invite')) return 2;
-    }
-    
-    return 0;
-  }
-
-  void _onDestinationSelected(int index, bool isDesktop) {
-    if (isDesktop) {
-      // 桌面端路由
+      // 桌面端路由：首页、套餐、客服、邀请
       switch (index) {
         case 0:
           context.go('/');
@@ -55,23 +35,37 @@ class _AdaptiveShellLayoutState extends ConsumerState<AdaptiveShellLayout> {
           break;
       }
     } else {
-      // 移动端路由（无客服）
+      // 移动端路由：首页、邀请
       switch (index) {
         case 0:
           context.go('/');
           break;
         case 1:
-          context.go('/plans');
-          break;
-        case 2:
           context.go('/invite');
           break;
       }
     }
   }
 
+  int _getCurrentIndex(BuildContext context, bool isDesktop) {
+    final location = GoRouterState.of(context).uri.path;
+    
+    if (isDesktop) {
+      // 桌面端：首页、套餐、客服、邀请
+      if (location == '/') return 0;
+      if (location.startsWith('/plans')) return 1;
+      if (location.startsWith('/support')) return 2;
+      if (location.startsWith('/invite')) return 3;
+      return 0;
+    } else {
+      // 移动端：首页、邀请
+      if (location.startsWith('/invite')) return 1;
+      return 0;
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth > 600;
     final currentIndex = _getCurrentIndex(context, isDesktop);
@@ -82,10 +76,10 @@ class _AdaptiveShellLayoutState extends ConsumerState<AdaptiveShellLayout> {
         children: [
           DesktopNavigationRail(
             selectedIndex: currentIndex,
-            onDestinationSelected: (index) => _onDestinationSelected(index, true),
+            onDestinationSelected: (index) => _onDestinationSelected(context, index, true),
           ),
           Expanded(
-            child: widget.child,
+            child: child,
           ),
         ],
       );
@@ -93,10 +87,10 @@ class _AdaptiveShellLayoutState extends ConsumerState<AdaptiveShellLayout> {
       // 移动端：Scaffold + 底部导航栏
       // 页面的 Scaffold 会嵌套在这里面
       return Scaffold(
-        body: widget.child,
+        body: child,
         bottomNavigationBar: MobileNavigationBar(
           selectedIndex: currentIndex,
-          onDestinationSelected: (index) => _onDestinationSelected(index, false),
+          onDestinationSelected: (index) => _onDestinationSelected(context, index, false),
         ),
       );
     }

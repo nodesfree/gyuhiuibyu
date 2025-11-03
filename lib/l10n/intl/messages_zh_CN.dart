@@ -798,6 +798,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "withdrawCommission": MessageLookupByLibrary.simpleMessage("提现佣金"),
     "withdrawableAmount": m33,
     "withdrawalAvailable": MessageLookupByLibrary.simpleMessage("可用佣金可申请提现"),
+    "xboard": MessageLookupByLibrary.simpleMessage("首页"),
     "xboard24HourCustomerService": MessageLookupByLibrary.simpleMessage(
       "24小时客服支持",
     ),
@@ -919,6 +920,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "xboardHandleLater": MessageLookupByLibrary.simpleMessage("稍后再说"),
     "xboardHandlingFee": MessageLookupByLibrary.simpleMessage("手续费"),
     "xboardHighSpeedNetwork": MessageLookupByLibrary.simpleMessage("高速网络"),
+    "xboardHome": MessageLookupByLibrary.simpleMessage("首页"),
     "xboardImportFailed": MessageLookupByLibrary.simpleMessage("导入失败"),
     "xboardImportSuccess": MessageLookupByLibrary.simpleMessage("导入成功"),
     "xboardInsufficientBalance": MessageLookupByLibrary.simpleMessage("余额不足"),

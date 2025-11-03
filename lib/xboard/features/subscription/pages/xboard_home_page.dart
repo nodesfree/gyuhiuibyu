@@ -80,6 +80,11 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage> {
       appBar: isDesktop ? null : AppBar(
         title: const Text('首页'), // 临时硬编码，等国际化文件重新生成后改为 appLocalizations.xboardHome
         automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.support_agent),
+          tooltip: '在线客服',
+          onPressed: () => context.go('/support'),
+        ),
         actions: [
           TextButton.icon(
             icon: const Icon(Icons.card_giftcard, size: 20),

@@ -20,29 +20,53 @@ class AdaptiveShellLayout extends ConsumerStatefulWidget {
 }
 
 class _AdaptiveShellLayoutState extends ConsumerState<AdaptiveShellLayout> {
-  int _getCurrentIndex(BuildContext context) {
+  int _getCurrentIndex(BuildContext context, bool isDesktop) {
     final location = GoRouterState.of(context).uri.path;
     if (location == '/') return 0;
     if (location.startsWith('/plans')) return 1;
-    if (location.startsWith('/support')) return 2;
-    if (location.startsWith('/invite')) return 3;
+    
+    if (isDesktop) {
+      // 桌面端：首页、套餐、客服、邀请
+      if (location.startsWith('/support')) return 2;
+      if (location.startsWith('/invite')) return 3;
+    } else {
+      // 移动端：首页、套餐、邀请（无客服）
+      if (location.startsWith('/invite')) return 2;
+    }
+    
     return 0;
   }
 
-  void _onDestinationSelected(int index) {
-    switch (index) {
-      case 0:
-        context.go('/');
-        break;
-      case 1:
-        context.go('/plans');
-        break;
-      case 2:
-        context.go('/support');
-        break;
-      case 3:
-        context.go('/invite');
-        break;
+  void _onDestinationSelected(int index, bool isDesktop) {
+    if (isDesktop) {
+      // 桌面端路由
+      switch (index) {
+        case 0:
+          context.go('/');
+          break;
+        case 1:
+          context.go('/plans');
+          break;
+        case 2:
+          context.go('/support');
+          break;
+        case 3:
+          context.go('/invite');
+          break;
+      }
+    } else {
+      // 移动端路由（无客服）
+      switch (index) {
+        case 0:
+          context.go('/');
+          break;
+        case 1:
+          context.go('/plans');
+          break;
+        case 2:
+          context.go('/invite');
+          break;
+      }
     }
   }
 
@@ -50,7 +74,7 @@ class _AdaptiveShellLayoutState extends ConsumerState<AdaptiveShellLayout> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth > 600;
-    final currentIndex = _getCurrentIndex(context);
+    final currentIndex = _getCurrentIndex(context, isDesktop);
     
     if (isDesktop) {
       // 桌面端：侧边栏 + 内容区（无外层 Scaffold）
@@ -58,7 +82,7 @@ class _AdaptiveShellLayoutState extends ConsumerState<AdaptiveShellLayout> {
         children: [
           DesktopNavigationRail(
             selectedIndex: currentIndex,
-            onDestinationSelected: _onDestinationSelected,
+            onDestinationSelected: (index) => _onDestinationSelected(index, true),
           ),
           Expanded(
             child: widget.child,
@@ -72,7 +96,7 @@ class _AdaptiveShellLayoutState extends ConsumerState<AdaptiveShellLayout> {
         body: widget.child,
         bottomNavigationBar: MobileNavigationBar(
           selectedIndex: currentIndex,
-          onDestinationSelected: _onDestinationSelected,
+          onDestinationSelected: (index) => _onDestinationSelected(index, false),
         ),
       );
     }

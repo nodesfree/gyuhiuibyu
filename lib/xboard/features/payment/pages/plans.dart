@@ -15,6 +15,7 @@ class PlansView extends ConsumerStatefulWidget {
 }
 class _PlansViewState extends ConsumerState<PlansView> {
   PlanData? _selectedPlan; // 桌面端选中的套餐
+  bool _hasCheckedUrlParams = false; // 标记是否已检查URL参数
   
   @override
   void initState() {
@@ -22,7 +23,38 @@ class _PlansViewState extends ConsumerState<PlansView> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final subscriptionNotifier = ref.read(xboardSubscriptionProvider.notifier);
       subscriptionNotifier.autoRefreshIfNeeded();
+      
+      // 检查URL参数中是否有planId
+      _checkUrlParams();
     });
+  }
+  
+  void _checkUrlParams() {
+    if (_hasCheckedUrlParams) return;
+    _hasCheckedUrlParams = true;
+    
+    // 获取URL参数
+    final state = GoRouterState.of(context);
+    final planIdStr = state.uri.queryParameters['planId'];
+    
+    if (planIdStr != null) {
+      final planId = int.tryParse(planIdStr);
+      if (planId != null) {
+        // 查找对应的套餐
+        final plans = ref.read(xboardSubscriptionProvider);
+        final plan = plans.cast<PlanData?>().firstWhere(
+          (p) => p?.id == planId,
+          orElse: () => null,
+        );
+        
+        if (plan != null) {
+          commonPrint.log('[PlansView] 从URL参数中获取套餐ID: $planId，自动选中套餐: ${plan.name}');
+          setState(() {
+            _selectedPlan = plan;
+          });
+        }
+      }
+    }
   }
   
   Future<void> _refreshPlans() async {

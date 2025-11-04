@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
+import 'package:fl_clash/xboard/features/subscription/providers/xboard_subscription_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:go_router/go_router.dart';
+import 'package:fl_clash/xboard/sdk/xboard_sdk.dart';
 
 import 'package:fl_clash/xboard/features/subscription/widgets/subscription_status_dialog.dart';
 import 'package:fl_clash/xboard/features/profile/providers/profile_import_provider.dart';
@@ -83,17 +85,8 @@ class SubscriptionStatusChecker {
     final result = await SubscriptionStatusDialog.show(
       context,
       statusResult,
-      onPurchase: () {
-        // 根据操作系统平台判断设备类型，选择不同的导航方式
-        final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
-        
-        if (isDesktop) {
-          // 桌面端：使用 go 切换导航分支，保持侧边栏可见
-          context.go('/plans');
-        } else {
-          // 移动端（iOS/Android）：使用 push 保留路由栈，可以返回
-          context.push('/plans');
-        }
+      onPurchase: () async {
+        await _handleRenewFromDialog(context, ref);
       },
       onRefresh: () async {
         commonPrint.log('[SubscriptionStatusChecker] 刷新订阅状态...');
@@ -107,6 +100,53 @@ class SubscriptionStatusChecker {
     commonPrint.log('[SubscriptionStatusChecker] 弹窗操作结果: $result');
     if (result == 'later' || result == null) {
       commonPrint.log('[SubscriptionStatusChecker] 用户选择稍后处理');
+    }
+  }
+  
+  Future<void> _handleRenewFromDialog(BuildContext context, WidgetRef ref) async {
+    final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
+    
+    // 尝试获取用户当前订阅的套餐ID
+    final userState = ref.read(xboardUserProvider);
+    final currentPlanId = userState.subscriptionInfo?.planId;
+    
+    if (currentPlanId != null) {
+      commonPrint.log('[SubscriptionStatusChecker] 尝试查找套餐ID: $currentPlanId');
+      
+      // 确保套餐列表已加载
+      var plans = ref.read(xboardSubscriptionProvider);
+      if (plans.isEmpty) {
+        commonPrint.log('[SubscriptionStatusChecker] 套餐列表为空，先加载套餐列表');
+        await ref.read(xboardSubscriptionProvider.notifier).loadPlans();
+        plans = ref.read(xboardSubscriptionProvider);
+      }
+      
+      final currentPlan = plans.cast<PlanData?>().firstWhere(
+        (plan) => plan?.id == currentPlanId,
+        orElse: () => null,
+      );
+      
+      if (currentPlan != null) {
+        commonPrint.log('[SubscriptionStatusChecker] 找到当前套餐，跳转到购买页面: ${currentPlan.name}');
+        if (isDesktop) {
+          // 桌面端：通过URL参数传递套餐ID，Plans页面内部会显示购买界面
+          context.go('/plans?planId=$currentPlanId');
+        } else {
+          // 移动端：直接跳转到全屏购买页面
+          context.push('/plans/purchase', extra: currentPlan);
+        }
+        return;
+      } else {
+        commonPrint.log('[SubscriptionStatusChecker] 未找到ID为 $currentPlanId 的套餐');
+      }
+    }
+    
+    // 没找到套餐：跳转到套餐列表页面
+    commonPrint.log('[SubscriptionStatusChecker] 跳转到套餐列表页面');
+    if (isDesktop) {
+      context.go('/plans');
+    } else {
+      context.push('/plans');
     }
   }
   Future<void> manualCheckSubscriptionStatus(

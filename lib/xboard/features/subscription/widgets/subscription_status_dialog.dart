@@ -61,7 +61,17 @@ class SubscriptionStatusDialog extends StatelessWidget {
           ],
         ),
       ),
-      actions: _buildActions(context),
+      actions: [
+        // 使用Column实现竖排按钮，右对齐
+        SizedBox(
+          width: double.infinity,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: _buildActions(context),
+          ),
+        ),
+      ],
     );
   }
   Widget _buildIcon() {
@@ -214,42 +224,53 @@ class SubscriptionStatusDialog extends StatelessWidget {
     if (statusResult.type == SubscriptionStatusType.expired ||
         statusResult.type == SubscriptionStatusType.exhausted) {
       actions.add(
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop('refresh');
-            onRefresh?.call();
-          },
+        SizedBox(
+          width: double.infinity,
+          child: TextButton(
+            onPressed: () {
+              Navigator.of(context).pop('refresh');
+              onRefresh?.call();
+            },
+            child: Text(
+              AppLocalizations.of(context).xboardRefreshStatus,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+              ),
+            ),
+          ),
+        ),
+      );
+      actions.add(const SizedBox(height: 8));
+    }
+    actions.add(
+      SizedBox(
+        width: double.infinity,
+        child: TextButton(
+          onPressed: () => Navigator.of(context).pop('later'),
           child: Text(
-            AppLocalizations.of(context).xboardRefreshStatus,
+            AppLocalizations.of(context).xboardHandleLater,
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
             ),
           ),
         ),
-      );
-    }
-    actions.add(
-      TextButton(
-        onPressed: () => Navigator.of(context).pop('later'),
-        child: Text(
-          AppLocalizations.of(context).xboardHandleLater,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-          ),
-        ),
       ),
     );
+    actions.add(const SizedBox(height: 8));
     actions.add(
-      FilledButton(
-        onPressed: () {
-          Navigator.of(context).pop('purchase');
-          onPurchase?.call();
-        },
-        style: FilledButton.styleFrom(
-          backgroundColor: _getPrimaryButtonColor(),
-          foregroundColor: Colors.white,
+      SizedBox(
+        width: double.infinity,
+        child: FilledButton(
+          onPressed: () {
+            Navigator.of(context).pop('purchase');
+            onPurchase?.call();
+          },
+          style: FilledButton.styleFrom(
+            backgroundColor: _getPrimaryButtonColor(),
+            foregroundColor: Colors.white,
+          ),
+          child: Text(_getPrimaryButtonText(context)),
         ),
-        child: Text(_getPrimaryButtonText(context)),
       ),
     );
     return actions;

@@ -1,8 +1,11 @@
+import 'dart:io';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
+import 'package:fl_clash/xboard/features/subscription/providers/xboard_subscription_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/models/models.dart' as fl_models;
 import 'package:fl_clash/xboard/sdk/xboard_sdk.dart';
+import 'package:go_router/go_router.dart';
 import '../services/subscription_status_service.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 class SubscriptionUsageCard extends ConsumerWidget {
@@ -209,9 +212,83 @@ class SubscriptionUsageCard extends ConsumerWidget {
               ),
             ),
           ],
+          // 续费按钮
+          const SizedBox(height: 12),
+          Consumer(
+            builder: (context, ref, child) {
+              return SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () async {
+                    await _handleRenewAction(context, ref);
+                  },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: statusColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  icon: const Icon(Icons.shopping_bag, size: 18),
+                  label: Text(_getRenewButtonText(statusResult.type, context)),
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
+  }
+  
+  String _getRenewButtonText(SubscriptionStatusType type, BuildContext context) {
+    switch (type) {
+      case SubscriptionStatusType.noSubscription:
+        return AppLocalizations.of(context).xboardPurchasePlan;
+      case SubscriptionStatusType.expired:
+        return AppLocalizations.of(context).xboardRenewPlan;
+      case SubscriptionStatusType.exhausted:
+        return AppLocalizations.of(context).xboardPurchaseTraffic;
+      default:
+        return AppLocalizations.of(context).xboardPurchasePlan;
+    }
+  }
+  
+  Future<void> _handleRenewAction(BuildContext context, WidgetRef ref) async {
+    final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
+    
+    // 尝试获取用户当前订阅的套餐ID
+    final userState = ref.read(xboardUserProvider);
+    final currentPlanId = userState.subscriptionInfo?.planId;
+    
+    if (currentPlanId != null) {
+      // 确保套餐列表已加载
+      var plans = ref.read(xboardSubscriptionProvider);
+      if (plans.isEmpty) {
+        await ref.read(xboardSubscriptionProvider.notifier).loadPlans();
+        plans = ref.read(xboardSubscriptionProvider);
+      }
+      
+      final currentPlan = plans.cast<PlanData?>().firstWhere(
+        (plan) => plan?.id == currentPlanId,
+        orElse: () => null,
+      );
+      
+      if (currentPlan != null) {
+        if (isDesktop) {
+          // 桌面端：通过URL参数传递套餐ID，Plans页面内部会显示购买界面
+          context.go('/plans?planId=$currentPlanId');
+        } else {
+          // 移动端：直接跳转到全屏购买页面
+          context.push('/plans/purchase', extra: currentPlan);
+        }
+        return;
+      }
+    }
+    
+    // 没找到套餐：跳转到套餐列表页面
+    if (isDesktop) {
+      context.go('/plans');
+    } else {
+      context.push('/plans');
+    }
   }
   Widget _buildUsageCard(ThemeData theme, BuildContext context) {
     final progress = _getProgressValue();

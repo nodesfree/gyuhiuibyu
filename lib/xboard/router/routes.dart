@@ -38,6 +38,32 @@ final List<RouteBase> routes = [
           ],
         ),
         
+        // 套餐列表分支
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/plans',
+              name: 'plans',
+              pageBuilder: (context, state) => const NoTransitionPage(
+                child: PlansView(),
+              ),
+            ),
+          ],
+        ),
+        
+        // 在线客服分支
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/support',
+              name: 'support',
+              pageBuilder: (context, state) => const NoTransitionPage(
+                child: OnlineSupportPage(),
+              ),
+            ),
+          ],
+        ),
+        
         // 邀请页面分支
         StatefulShellBranch(
           routes: [
@@ -51,24 +77,6 @@ final List<RouteBase> routes = [
           ],
         ),
       ],
-    ),
-    
-    // 在线客服页面（全屏，手机端不显示底部导航栏）
-    GoRoute(
-      path: '/support',
-      name: 'support',
-      pageBuilder: (context, state) => const MaterialPage(
-        child: OnlineSupportPage(),
-      ),
-    ),
-    
-    // 套餐列表页面（全屏，手机端不显示底部导航栏）
-    GoRoute(
-      path: '/plans',
-      name: 'plans',
-      pageBuilder: (context, state) => const MaterialPage(
-        child: PlansView(),
-      ),
     ),
     
     // 套餐购买页面（全屏，不在 Shell 内）

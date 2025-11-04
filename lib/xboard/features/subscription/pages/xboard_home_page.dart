@@ -86,7 +86,10 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
         leading: TextButton.icon(
           icon: const Icon(Icons.support_agent, size: 20),
           label: Text(appLocalizations.onlineSupport),
-          onPressed: () => context.push('/support'),
+          onPressed: () {
+            // 移动端独有的按钮，使用 push 创建路由栈
+            context.push('/support');
+          },
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             minimumSize: Size.zero,
@@ -97,7 +100,10 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
           TextButton.icon(
             icon: const Icon(Icons.card_giftcard, size: 20),
             label: Text(appLocalizations.xboardPlanInfo),
-            onPressed: () => context.push('/plans'),
+            onPressed: () {
+              // 移动端独有的按钮，使用 push 创建路由栈
+              context.push('/plans');
+            },
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               minimumSize: Size.zero,

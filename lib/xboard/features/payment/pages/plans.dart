@@ -7,6 +7,7 @@ import 'plan_purchase_page.dart';
 import '../widgets/plan_description_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 class PlansView extends ConsumerStatefulWidget {
   const PlansView({super.key});
   @override
@@ -178,7 +179,7 @@ class _PlansViewState extends ConsumerState<PlansView> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth > 768;
     
-    return Scaffold(
+    final scaffold = Scaffold(
       appBar: _selectedPlan != null && isDesktop
           // 桌面端购买页面：显示返回按钮的 AppBar
           ? AppBar(
@@ -299,5 +300,19 @@ class _PlansViewState extends ConsumerState<PlansView> {
         ),
       ),
     );
+    
+    // 移动端需要拦截返回按钮，桌面端直接返回 scaffold
+    if (isDesktop) {
+      return scaffold;
+    } else {
+      return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          context.go('/');
+        },
+        child: scaffold,
+      );
+    }
   }
 }

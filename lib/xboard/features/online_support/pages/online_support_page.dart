@@ -6,6 +6,7 @@ import 'package:fl_clash/xboard/features/online_support/services/websocket_servi
 import 'package:fl_clash/xboard/features/online_support/widgets/chat_message_widget.dart';
 import 'package:fl_clash/xboard/features/online_support/widgets/image_picker_widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class OnlineSupportPage extends ConsumerStatefulWidget {
   const OnlineSupportPage({super.key});
@@ -168,22 +169,27 @@ class _OnlineSupportPageState extends ConsumerState<OnlineSupportPage> {
     }
 
     // 页面构建
-    return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          children: [
-            Text(appLocalizations.onlineSupportTitle),
-            // 连接状态显示在标题下方
-            Text(
-              getConnectionStatusText(),
-              style: TextStyle(
-                fontSize: 12,
-                color: getConnectionStatusColor(),
-              ),
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktop = screenWidth > 600;
+    
+    final scaffold = Scaffold(
+      appBar: isDesktop 
+        ? null  // 桌面端不显示 AppBar，由 Shell 提供导航
+        : AppBar(
+            title: Column(
+              children: [
+                Text(appLocalizations.onlineSupportTitle),
+                // 连接状态显示在标题下方
+                Text(
+                  getConnectionStatusText(),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: getConnectionStatusColor(),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-        centerTitle: true,
+            centerTitle: true,
         // actions: [
         //   // 添加清除历史按钮
         //   IconButton(
@@ -340,5 +346,19 @@ class _OnlineSupportPageState extends ConsumerState<OnlineSupportPage> {
         ],
       ),
     );
+    
+    // 移动端需要拦截返回按钮，桌面端直接返回 scaffold
+    if (isDesktop) {
+      return scaffold;
+    } else {
+      return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          context.go('/');
+        },
+        child: scaffold,
+      );
+    }
   }
 }

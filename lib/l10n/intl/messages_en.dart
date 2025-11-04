@@ -190,9 +190,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "autoUpdateInterval": MessageLookupByLibrary.simpleMessage(
       "Auto update interval (minutes)",
     ),
-    "availableCommission": MessageLookupByLibrary.simpleMessage(
-      "Available Commission",
-    ),
+    "availableCommission": MessageLookupByLibrary.simpleMessage("Available"),
     "backToLogin": MessageLookupByLibrary.simpleMessage("Back to Login"),
     "backup": MessageLookupByLibrary.simpleMessage("Backup"),
     "backupAndRecovery": MessageLookupByLibrary.simpleMessage(
@@ -247,7 +245,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "commissionHistory": MessageLookupByLibrary.simpleMessage(
       "Commission History",
     ),
-    "commissionRate": MessageLookupByLibrary.simpleMessage("Commission Rate"),
+    "commissionRate": MessageLookupByLibrary.simpleMessage("Rate"),
     "commissionSettled": MessageLookupByLibrary.simpleMessage(
       "Commission settled after friend subscription",
     ),
@@ -738,9 +736,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Passwords do not match",
     ),
     "paste": MessageLookupByLibrary.simpleMessage("Paste"),
-    "pendingCommission": MessageLookupByLibrary.simpleMessage(
-      "Pending Commission",
-    ),
+    "pendingCommission": MessageLookupByLibrary.simpleMessage("Pending"),
     "plans": MessageLookupByLibrary.simpleMessage("Plans"),
     "pleaseBindWebDAV": MessageLookupByLibrary.simpleMessage(
       "Please bind WebDAV",
@@ -1048,8 +1044,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "toggle": MessageLookupByLibrary.simpleMessage("Toggle"),
     "tonalSpotScheme": MessageLookupByLibrary.simpleMessage("TonalSpot"),
     "tools": MessageLookupByLibrary.simpleMessage("Tools"),
-    "totalCommission": MessageLookupByLibrary.simpleMessage("Total Commission"),
-    "totalInvites": MessageLookupByLibrary.simpleMessage("Total Invites"),
+    "totalCommission": MessageLookupByLibrary.simpleMessage("Earnings"),
+    "totalInvites": MessageLookupByLibrary.simpleMessage("Invites"),
     "totalRecords": m23,
     "tproxyPort": MessageLookupByLibrary.simpleMessage("Tproxy Port"),
     "trafficUsage": MessageLookupByLibrary.simpleMessage("Traffic usage"),
@@ -1152,7 +1148,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "vpnTip": MessageLookupByLibrary.simpleMessage(
       "Changes take effect after restarting the VPN",
     ),
-    "walletBalance": MessageLookupByLibrary.simpleMessage("Wallet Balance"),
+    "walletBalance": MessageLookupByLibrary.simpleMessage("Balance"),
     "walletDetails": MessageLookupByLibrary.simpleMessage("Wallet Details"),
     "webDAVConfiguration": MessageLookupByLibrary.simpleMessage(
       "WebDAV configuration",

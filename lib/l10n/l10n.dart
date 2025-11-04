@@ -6149,30 +6149,20 @@ class AppLocalizations {
     );
   }
 
-  /// `Total Invites`
+  /// `Invites`
   String get totalInvites {
-    return Intl.message(
-      'Total Invites',
-      name: 'totalInvites',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Invites', name: 'totalInvites', desc: '', args: []);
   }
 
-  /// `Commission Rate`
+  /// `Rate`
   String get commissionRate {
-    return Intl.message(
-      'Commission Rate',
-      name: 'commissionRate',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Rate', name: 'commissionRate', desc: '', args: []);
   }
 
-  /// `Total Commission`
+  /// `Earnings`
   String get totalCommission {
     return Intl.message(
-      'Total Commission',
+      'Earnings',
       name: 'totalCommission',
       desc: '',
       args: [],
@@ -6194,34 +6184,29 @@ class AppLocalizations {
     return Intl.message('Transfer', name: 'transfer', desc: '', args: []);
   }
 
-  /// `Available Commission`
+  /// `Available`
   String get availableCommission {
     return Intl.message(
-      'Available Commission',
+      'Available',
       name: 'availableCommission',
       desc: '',
       args: [],
     );
   }
 
-  /// `Pending Commission`
+  /// `Pending`
   String get pendingCommission {
     return Intl.message(
-      'Pending Commission',
+      'Pending',
       name: 'pendingCommission',
       desc: '',
       args: [],
     );
   }
 
-  /// `Wallet Balance`
+  /// `Balance`
   String get walletBalance {
-    return Intl.message(
-      'Wallet Balance',
-      name: 'walletBalance',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Balance', name: 'walletBalance', desc: '', args: []);
   }
 
   /// `Commission History`

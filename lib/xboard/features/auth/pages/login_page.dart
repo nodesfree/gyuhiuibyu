@@ -293,55 +293,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       ),
                       const SizedBox(height: 32),
                       SizedBox(
-                        height: 52,
-                        child: ElevatedButton(
-                          onPressed: domainStatus.isReady ? _login : null,
-                          style: ElevatedButton.styleFrom(
-                            elevation: 4,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            padding: EdgeInsets.zero,
-                          ),
-                          child: Ink(
-                            decoration: BoxDecoration(
-                              gradient: domainStatus.isReady
-                                  ? LinearGradient(
-                                      colors: [
-                                        colorScheme.primary,
-                                        colorScheme.primaryContainer,
-                                      ],
-                                      begin: Alignment.centerLeft,
-                                      end: Alignment.centerRight,
-                                    )
-                                  : null,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Container(
-                              alignment: Alignment.center,
-                              child: AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 300),
-                                child: userState.isLoading
-                                    ? SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2.5,
-                                          valueColor: AlwaysStoppedAnimation<Color>(
-                                            colorScheme.onPrimary,
-                                          ),
-                                        ),
-                                      )
-                                    : Text(
-                                        appLocalizations.xboardLogin,
-                                        style: textTheme.titleMedium?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          color: colorScheme.onPrimary,
-                                        ),
-                                      ),
-                              ),
-                            ),
-                          ),
+                        height: 48,
+                        child: FilledButton(
+                          onPressed: domainStatus.isReady && !userState.isLoading ? _login : null,
+                          child: userState.isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : Text(appLocalizations.xboardLogin),
                         ),
                       ),
                       const SizedBox(height: 24),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/xboard/features/shared/shared.dart';
 import 'package:fl_clash/xboard/sdk/xboard_sdk.dart';
 import 'package:fl_clash/l10n/l10n.dart';
+import 'package:go_router/go_router.dart';
 
 class ForgotPasswordPage extends ConsumerStatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -107,7 +108,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
             duration: const Duration(seconds: 3),
           ),
         );
-        Navigator.of(context).pop();
+        context.pop();
       }
     } catch (e) {
       if (mounted) {
@@ -346,7 +347,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                       if (_currentStep == ResetPasswordStep.resetPassword) {
                         _goBackToSendCode();
                       } else {
-                        Navigator.of(context).pop();
+                        context.pop();
                       }
                     },
                     icon: const Icon(Icons.arrow_back),
@@ -390,7 +391,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                               ),
                             ),
                             TextButton(
-                              onPressed: () => Navigator.of(context).pop(),
+                              onPressed: () => context.pop(),
                               child: Text(
                                 AppLocalizations.of(context).backToLogin,
                                 style: TextStyle(

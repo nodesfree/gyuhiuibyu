@@ -129,12 +129,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
   }
   void _navigateToRegister() async {
-    await context.push('/register');
+    commonPrint.log('[LoginPage] 导航到注册页面');
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const RegisterPage()),
+    );
+    commonPrint.log('[LoginPage] 从注册页面返回');
     _loadSavedCredentials();
     _checkDomainStatus();
   }
+  
   void _navigateToForgotPassword() async {
-    await context.push('/forgot-password');
+    commonPrint.log('[LoginPage] 导航到忘记密码页面');
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
+    );
+    commonPrint.log('[LoginPage] 从忘记密码页面返回');
     _checkDomainStatus();
   }
     @override

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/xboard/features/shared/shared.dart';
 import 'package:fl_clash/xboard/services/services.dart';
+import 'package:go_router/go_router.dart';
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
   @override
@@ -21,8 +22,16 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   bool _isSendingEmailCode = false;
+  
+  @override
+  void initState() {
+    super.initState();
+    commonPrint.log('[RegisterPage] initState 被调用');
+  }
+  
   @override
   void dispose() {
+    commonPrint.log('[RegisterPage] dispose 被调用');
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -70,7 +79,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           }
           Future.delayed(const Duration(seconds: 1), () {
             if (mounted) {
-              Navigator.of(context).pop();
+              context.pop();
             }
           });
         }
@@ -179,7 +188,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                context.pop();
               },
               child: Text(appLocalizations.iUnderstand),
             ),
@@ -191,8 +200,28 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    commonPrint.log('[RegisterPage] build 被调用');
     final colorScheme = Theme.of(context).colorScheme;
     final configAsync = ref.watch(configProvider);
+    
+    // 处理异步加载状态
+    return configAsync.when(
+      loading: () => Scaffold(
+        backgroundColor: colorScheme.surface,
+        body: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, stack) {
+        commonPrint.log('[RegisterPage] 加载配置失败: $error');
+        return _buildPage(context, colorScheme, null);
+      },
+      data: (config) {
+        commonPrint.log('[RegisterPage] 配置加载成功');
+        return _buildPage(context, colorScheme, config);
+      },
+    );
+  }
+  
+  Widget _buildPage(BuildContext context, ColorScheme colorScheme, ConfigData? config) {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       body: XBContainer(
@@ -203,7 +232,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => context.pop(),
                     icon: const Icon(Icons.arrow_back),
                     style: IconButton.styleFrom(
                       backgroundColor: colorScheme.surfaceContainerLow,
@@ -313,11 +342,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                         ),
                         const SizedBox(height: 20),
                         // 根据配置决定是否显示邮箱验证码字段
-                        configAsync.when(
-                          data: (config) {
-                            if (config?.isEmailVerify == true) {
-                              return Column(
-                                children: [
+                        if (config?.isEmailVerify == true)
+                          Column(
+                            children: [
                                   XBInputField(
                                     controller: _emailCodeController,
                                     labelText: appLocalizations.emailVerificationCode,
@@ -345,44 +372,17 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                     },
                                   ),
                                   const SizedBox(height: 20),
-                                ],
-                              );
-                            }
-                            return const SizedBox.shrink();
-                          },
-                          loading: () => const SizedBox.shrink(),
-                          error: (_, __) => const SizedBox.shrink(),
-                        ),
+                            ],
+                          ),
                         // 根据配置决定邀请码字段的显示和必填状态
-                        configAsync.when(
-                          data: (config) {
-                            final isInviteForce = config?.isInviteForce ?? false;
-                            return XBInputField(
-                              controller: _inviteCodeController,
-                              labelText: isInviteForce 
-                                  ? '${appLocalizations.xboardInviteCode} *' 
-                                  : appLocalizations.inviteCodeOptional,
-                              hintText: isInviteForce 
-                                  ? appLocalizations.pleaseEnterInviteCode 
-                                  : appLocalizations.pleaseEnterInviteCode,
-                              prefixIcon: Icons.card_giftcard_outlined,
-                              enabled: true,
-                            );
-                          },
-                          loading: () => XBInputField(
-                            controller: _inviteCodeController,
-                            labelText: appLocalizations.xboardInviteCode,
-                            hintText: appLocalizations.loading,
-                            prefixIcon: Icons.card_giftcard_outlined,
-                            enabled: false,
-                          ),
-                          error: (_, __) => XBInputField(
-                            controller: _inviteCodeController,
-                            labelText: appLocalizations.inviteCodeOptional,
-                            hintText: appLocalizations.pleaseEnterInviteCode,
-                            prefixIcon: Icons.card_giftcard_outlined,
-                            enabled: true,
-                          ),
+                        XBInputField(
+                          controller: _inviteCodeController,
+                          labelText: (config?.isInviteForce ?? false)
+                              ? '${appLocalizations.xboardInviteCode} *' 
+                              : appLocalizations.inviteCodeOptional,
+                          hintText: appLocalizations.pleaseEnterInviteCode,
+                          prefixIcon: Icons.card_giftcard_outlined,
+                          enabled: true,
                         ),
                         const SizedBox(height: 32),
                         SizedBox(
@@ -428,7 +428,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                               ),
                             ),
                             TextButton(
-                              onPressed: () => Navigator.of(context).pop(),
+                              onPressed: () => context.pop(),
                               child: Text(
                                 appLocalizations.loginNow,
                                 style: TextStyle(

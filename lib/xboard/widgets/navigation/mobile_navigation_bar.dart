@@ -15,13 +15,15 @@ class MobileNavigationBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return NavigationBar(
       selectedIndex: selectedIndex,
+      height: 60,
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       destinations: const [
         NavigationDestination(
-          icon: Icon(Icons.home),
+          icon: Icon(Icons.home, size: 22),
           label: '首页',
         ),
         NavigationDestination(
-          icon: Icon(Icons.people),
+          icon: Icon(Icons.people, size: 22),
           label: '邀请',
         ),
       ],

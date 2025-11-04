@@ -17,11 +17,20 @@ class InvitePage extends ConsumerStatefulWidget {
   ConsumerState<InvitePage> createState() => _InvitePageState();
 }
 
-class _InvitePageState extends ConsumerState<InvitePage> {
+class _InvitePageState extends ConsumerState<InvitePage> 
+    with AutomaticKeepAliveClientMixin {
+  bool _hasInitialized = false;
+  
+  @override
+  bool get wantKeepAlive => true;  // 保持页面状态，防止重建
+  
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (_hasInitialized) return;
+      _hasInitialized = true;
+      
       await ref.read(inviteProvider.notifier).refresh();
       final inviteState = ref.read(inviteProvider);
       if (!inviteState.hasInviteData || inviteState.inviteData!.codes.isEmpty) {
@@ -32,6 +41,8 @@ class _InvitePageState extends ConsumerState<InvitePage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);  // 必须调用，配合 AutomaticKeepAliveClientMixin
+    
     final appLocalizations = AppLocalizations.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth > 600;

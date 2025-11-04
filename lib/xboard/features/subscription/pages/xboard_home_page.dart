@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 import 'package:flutter/material.dart';
@@ -11,10 +10,7 @@ import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/xboard/features/shared/shared.dart';
 import 'package:fl_clash/xboard/features/latency/services/auto_latency_service.dart';
 import 'package:fl_clash/xboard/features/subscription/services/subscription_status_checker.dart';
-import 'package:fl_clash/xboard/features/payment/pages/plans.dart';
 import 'package:fl_clash/xboard/features/auth/pages/login_page.dart';
-import 'package:fl_clash/xboard/features/online_support/pages/online_support_page.dart';
-import 'package:fl_clash/xboard/features/online_support/providers/chat_provider.dart';
 import '../widgets/subscription_usage_card.dart';
 import '../widgets/xboard_connect_button.dart';
 class XBoardHomePage extends ConsumerStatefulWidget {
@@ -22,9 +18,14 @@ class XBoardHomePage extends ConsumerStatefulWidget {
   @override
   ConsumerState<XBoardHomePage> createState() => _XBoardHomePageState();
 }
-class _XBoardHomePageState extends ConsumerState<XBoardHomePage> {
+class _XBoardHomePageState extends ConsumerState<XBoardHomePage> 
+    with AutomaticKeepAliveClientMixin {
   bool _hasInitialized = false;
   bool _hasStartedLatencyTesting = false;
+  
+  @override
+  bool get wantKeepAlive => true;  // 保持页面状态，防止重建
+  
   @override
   void initState() {
     super.initState();
@@ -71,6 +72,8 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage> {
   }
   @override
   Widget build(BuildContext context) {
+    super.build(context);  // 必须调用，配合 AutomaticKeepAliveClientMixin
+    
     final appLocalizations = AppLocalizations.of(context);
     // 获取屏幕宽度判断是否桌面端
     final screenWidth = MediaQuery.of(context).size.width;
@@ -83,7 +86,7 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage> {
         leading: TextButton.icon(
           icon: const Icon(Icons.support_agent, size: 20),
           label: Text(appLocalizations.onlineSupport),
-          onPressed: () => context.go('/support'),
+          onPressed: () => context.push('/support'),
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             minimumSize: Size.zero,
@@ -94,7 +97,7 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage> {
           TextButton.icon(
             icon: const Icon(Icons.card_giftcard, size: 20),
             label: Text(appLocalizations.xboardPlanInfo),
-            onPressed: () => context.go('/plans'),
+            onPressed: () => context.push('/plans'),
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               minimumSize: Size.zero,

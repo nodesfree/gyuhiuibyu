@@ -163,6 +163,10 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
   void _showNoticeDialog() {
     final noticeState = ref.read(noticeProvider);
     if (noticeState.visibleNotices.isEmpty) return;
+    
+    // 在打开对话框前移除焦点
+    FocusScope.of(context).unfocus();
+    
     showDialog(
       context: context,
       builder: (context) => NoticeDetailDialog(
@@ -172,7 +176,12 @@ class _NoticeBannerState extends ConsumerState<NoticeBanner>
           // 更新当前索引以便外部知道
         },
       ),
-    );
+    ).then((_) {
+      // 对话框关闭后也确保移除焦点
+      if (mounted) {
+        FocusScope.of(context).unfocus();
+      }
+    });
   }
 }
 class NoticeDetailDialog extends StatefulWidget {
@@ -227,9 +236,20 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
     
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: Dialog(
+    return PopScope(
+      onPopInvokedWithResult: (didPop, result) {
+        // 当对话框关闭时（无论通过什么方式），移除焦点
+        if (didPop) {
+          Future.microtask(() {
+            if (context.mounted) {
+              FocusScope.of(context).unfocus();
+            }
+          });
+        }
+      },
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: Dialog(
         backgroundColor: Colors.transparent,
         elevation: 0,
         insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
@@ -279,6 +299,7 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
               ),
             ],
           ),
+        ),
         ),
       ),
     );
@@ -352,7 +373,11 @@ class _NoticeDetailDialogState extends State<NoticeDetailDialog>
           Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () => Navigator.of(context).pop(),
+              onTap: () {
+                // 在关闭对话框前移除焦点，避免键盘弹出
+                FocusScope.of(context).unfocus();
+                Navigator.of(context).pop();
+              },
               borderRadius: BorderRadius.circular(12),
               child: Padding(
                 padding: const EdgeInsets.all(6.0),

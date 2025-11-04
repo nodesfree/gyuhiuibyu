@@ -7,7 +7,6 @@ import 'plan_purchase_page.dart';
 import '../widgets/plan_description_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 class PlansView extends ConsumerStatefulWidget {
   const PlansView({super.key});
   @override
@@ -197,7 +196,7 @@ class _PlansViewState extends ConsumerState<PlansView> {
               ? null
               : AppBar(
                   title: Text(appLocalizations.xboardPlanInfo),
-                  automaticallyImplyLeading: false,
+                  // 使用 push 路由后，自动显示返回按钮
                 ),
       body: isDesktop && _selectedPlan != null
           // 桌面端：显示购买页面（嵌入模式，无 Scaffold）

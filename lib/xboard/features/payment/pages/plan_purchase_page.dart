@@ -320,15 +320,36 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       _logger.debug('[购买] 订单创建成功: $tradeNo');
       PaymentWaitingManager.updateTradeNo(tradeNo);
 
+      // 计算实付金额
+      final displayFinalPrice = _finalPrice ?? _getCurrentPrice();
+      final balanceToUse = _userBalance != null && _userBalance! > 0
+          ? (_userBalance! > displayFinalPrice ? displayFinalPrice : _userBalance!)
+          : 0.0;
+      final actualPayAmount = displayFinalPrice - balanceToUse;
+
+      _logger.debug('[购买] 实付金额: $actualPayAmount (优惠后价格: $displayFinalPrice, 余额抵扣: $balanceToUse)');
+
       // 获取支付方式
       final paymentMethods = await XBoardSDK.getPaymentMethods();
       if (paymentMethods.isEmpty) {
         throw Exception('暂无可用的支付方式');
       }
       
-      // 选择支付方式
-      final selectedMethod = await _selectPaymentMethod(paymentMethods, tradeNo);
-      if (selectedMethod == null) return;
+      PaymentMethod? selectedMethod;
+      
+      // 如果实付金额为0（余额完全抵扣），自动选择第一个支付方式，跳过用户选择
+      if (actualPayAmount <= 0) {
+        _logger.debug('[购买] 实付金额为0，自动选择第一个支付方式进行余额支付');
+        selectedMethod = paymentMethods.first;
+        // 显示支付等待页面
+        if (mounted) {
+          _showPaymentWaiting(tradeNo);
+        }
+      } else {
+        // 需要实际支付，让用户选择支付方式
+        selectedMethod = await _selectPaymentMethod(paymentMethods, tradeNo);
+        if (selectedMethod == null) return;
+      }
 
       // 提交支付
       await _submitPayment(tradeNo, selectedMethod);

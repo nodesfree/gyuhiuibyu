@@ -43,9 +43,16 @@ class WalletDetailsCard extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: StatItemWidget(
-                      title: appLocalizations.totalCommission,
-                      value: inviteState.formattedCommission,
-                      icon: Icons.monetization_on,
+                      title: appLocalizations.availableCommission,
+                      value: inviteState.formattedAvailableCommission,
+                      icon: Icons.account_balance_wallet,
+                    ),
+                  ),
+                  Expanded(
+                    child: StatItemWidget(
+                      title: appLocalizations.pendingCommission,
+                      value: inviteState.formattedPendingCommission,
+                      icon: Icons.hourglass_empty,
                     ),
                   ),
                   Expanded(

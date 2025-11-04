@@ -12,6 +12,26 @@
 
 ---
 
+<div align="center">
+
+---
+📢 **广告位** 📢
+
+**感谢 MotionPay 对本项目的支持，以下是他们提供的内容**
+---
+
+## 💳 MotionPay - 专业支付解决方案
+
+**MotionPay** - 低费率·稳定可靠·快速结算
+
+📋 [服务详情](https://t.me/Motionzf/206) | 💬 [业务咨询](https://t.me/MotionIDC) | 🤖 [客服支持](https://t.me/MotionPaySupportBot)
+
+---
+
+</div>
+
+---
+
 ## 📖 项目简介
 
 XBoard Mihomo 是基于 [FlClash v0.8.85](https://github.com/chen08209/FlClash) 的增强版本，深度集成了 **XBoard v20250905-b144770** 面板支持。本项目采用模块化设计理念，将所有 XBoard 相关功能封装在独立的 `lib/xboard` 模块中，最大限度减少与上游 FlClash 的代码冲突，便于后续跟进上游更新。

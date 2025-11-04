@@ -88,13 +88,13 @@ class _DiscountBadge extends StatelessWidget {
           colors: [Colors.green.shade400, Colors.green.shade600],
         ),
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.green.shade200.withOpacity(0.5),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+      boxShadow: [
+        BoxShadow(
+          color: Colors.green.shade200.withValues(alpha: 0.5),
+          blurRadius: 4,
+          offset: const Offset(0, 2),
+        ),
+      ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -140,10 +140,20 @@ class _CouponTextField extends StatelessWidget {
       ),
       child: TextField(
         controller: controller,
+        style: TextStyle(
+          color: Colors.grey.shade900,
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.5,
+        ),
         decoration: InputDecoration(
           border: InputBorder.none,
           hintText: AppLocalizations.of(context).xboardEnterCouponCode,
-          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+          hintStyle: TextStyle(
+            color: Colors.grey.shade400,
+            fontSize: 14,
+            fontWeight: FontWeight.normal,
+          ),
           prefixIcon: Icon(
             Icons.confirmation_number_outlined,
             color: _getIconColor(),
@@ -193,7 +203,14 @@ class _ValidateButton extends StatelessWidget {
     return SizedBox(
       height: 48,
       child: ElevatedButton(
-        onPressed: isValidating ? null : onPressed,
+        onPressed: isValidating 
+            ? null 
+            : () {
+                // 收起键盘
+                FocusScope.of(context).unfocus();
+                // 执行验证
+                onPressed();
+              },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.orange.shade600,
           foregroundColor: Colors.white,

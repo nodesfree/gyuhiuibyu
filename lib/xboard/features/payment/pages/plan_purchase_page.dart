@@ -509,7 +509,8 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
     final currentPrice = _getCurrentPrice();
     final isDesktop = MediaQuery.of(context).size.width > 600;
 
-    final content = Center(
+    final content = Align(
+      alignment: Alignment.topCenter,
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: isDesktop ? 700 : double.infinity,

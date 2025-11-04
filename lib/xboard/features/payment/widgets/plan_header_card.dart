@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/xboard/sdk/xboard_sdk.dart';
 import '../utils/price_calculator.dart';
 
@@ -11,6 +12,20 @@ class PlanHeaderCard extends StatelessWidget {
     required this.plan,
   });
 
+  String _getTrafficDisplay(BuildContext context) {
+    if (plan.transferEnable == 0) {
+      return AppLocalizations.of(context).xboardUnlimited;
+    }
+    return PriceCalculator.formatTraffic(plan.transferEnable);
+  }
+
+  String _getSpeedLimitDisplay(BuildContext context) {
+    if (plan.speedLimit == null) {
+      return AppLocalizations.of(context).xboardUnlimited;
+    }
+    return '${plan.speedLimit}Mbps';
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width > 600;
@@ -21,7 +36,7 @@ class PlanHeaderCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -33,7 +48,7 @@ class PlanHeaderCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(
@@ -65,15 +80,13 @@ class PlanHeaderCard extends StatelessWidget {
                   children: [
                     _buildCompactInfo(
                       Icons.cloud_download_outlined,
-                      PriceCalculator.formatTraffic(plan.transferEnable),
+                      _getTrafficDisplay(context),
                     ),
-                    if ((plan.speedLimit ?? 0) > 0) ...[
-                      const SizedBox(width: 10),
-                      _buildCompactInfo(
-                        Icons.speed,
-                        '${plan.speedLimit}Mbps',
-                      ),
-                    ],
+                    const SizedBox(width: 10),
+                    _buildCompactInfo(
+                      Icons.speed,
+                      _getSpeedLimitDisplay(context),
+                    ),
                   ],
                 ),
               ],
@@ -88,7 +101,7 @@ class PlanHeaderCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(

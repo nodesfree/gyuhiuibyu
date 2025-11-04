@@ -42,26 +42,33 @@ class PeriodSelector extends StatelessWidget {
           ),
         ),
         if (periods.length <= 2)
-          _buildRowLayout()
+          _buildRowLayout(context)
         else
           _buildGridLayout(context),
       ],
     );
   }
 
-  Widget _buildRowLayout() {
+  Widget _buildRowLayout(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktop = screenWidth > 600;
+    final baseWidth = isDesktop ? 1200.0 : 360.0;
+    final scaleFactor = (screenWidth / baseWidth).clamp(0.8, 1.5);
+    final horizontalPadding = (3 * scaleFactor).clamp(2.0, 6.0);
+    
     return Row(
       children: periods.map((period) {
         final isSelected = selectedPeriod == period['period'];
         return Expanded(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
+            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
             child: _PeriodCard(
               period: period,
               isSelected: isSelected,
               onTap: () => onPeriodSelected(period['period']),
               couponType: couponType,
               couponValue: couponValue,
+              scaleFactor: scaleFactor,
             ),
           ),
         );
@@ -73,14 +80,28 @@ class PeriodSelector extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth > 600;
     
+    // 基准宽度：小屏 360，大屏 1200
+    final baseWidth = isDesktop ? 1200.0 : 360.0;
+    final scaleFactor = (screenWidth / baseWidth).clamp(0.8, 1.5);
+    
+    // 根据屏幕大小动态调整间距
+    final spacing = isDesktop 
+        ? (6 * scaleFactor).clamp(6.0, 12.0)
+        : (6 * scaleFactor).clamp(4.0, 10.0);
+    
+    // 根据屏幕大小动态调整宽高比
+    final aspectRatio = isDesktop 
+        ? (3.0 * scaleFactor).clamp(2.8, 3.5)
+        : (2.8 * scaleFactor).clamp(2.5, 3.2);
+    
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: isDesktop ? 3 : 2,
-        childAspectRatio: 2.0,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
+        childAspectRatio: aspectRatio,
+        crossAxisSpacing: spacing,
+        mainAxisSpacing: spacing,
       ),
       itemCount: periods.length,
       itemBuilder: (context, index) {
@@ -92,6 +113,7 @@ class PeriodSelector extends StatelessWidget {
           onTap: () => onPeriodSelected(period['period']),
           couponType: couponType,
           couponValue: couponValue,
+          scaleFactor: scaleFactor,
         );
       },
     );
@@ -104,6 +126,7 @@ class _PeriodCard extends StatelessWidget {
   final VoidCallback onTap;
   final int? couponType;
   final int? couponValue;
+  final double scaleFactor;
 
   const _PeriodCard({
     required this.period,
@@ -111,6 +134,7 @@ class _PeriodCard extends StatelessWidget {
     required this.onTap,
     this.couponType,
     this.couponValue,
+    this.scaleFactor = 1.0,
   });
 
   @override
@@ -128,11 +152,22 @@ class _PeriodCard extends StatelessWidget {
         couponType != null && 
         displayPrice < periodPrice;
 
+    // 根据屏幕大小动态调整尺寸
+    final padding = (6 * scaleFactor).clamp(4.0, 10.0);
+    final borderRadius = (8 * scaleFactor).clamp(6.0, 12.0);
+    final iconSize = (14 * scaleFactor).clamp(12.0, 18.0);
+    final labelFontSize = (11 * scaleFactor).clamp(10.0, 13.0);
+    final priceFontSize = (13 * scaleFactor).clamp(12.0, 16.0);
+    final originalPriceFontSize = (9 * scaleFactor).clamp(8.0, 11.0);
+    final horizontalSpacing = (3 * scaleFactor).clamp(2.0, 5.0);
+    final verticalSpacing = (3 * scaleFactor).clamp(2.0, 5.0);
+    final priceSpacing = (4 * scaleFactor).clamp(3.0, 6.0);
+
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(borderRadius),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        padding: EdgeInsets.symmetric(horizontal: padding, vertical: padding),
         decoration: BoxDecoration(
           gradient: isSelected
               ? LinearGradient(
@@ -142,75 +177,87 @@ class _PeriodCard extends StatelessWidget {
                 )
               : null,
           color: isSelected ? null : Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(borderRadius),
           border: Border.all(
             color: isSelected ? Colors.blue.shade600 : Colors.grey.shade300,
-            width: isSelected ? 2 : 1,
+            width: isSelected ? 1.5 : 1,
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: Colors.blue.shade200.withOpacity(0.5),
-                    blurRadius: 6,
-                    offset: const Offset(0, 3),
+                    color: Colors.blue.shade200.withValues(alpha: 0.5),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
                   ),
                 ]
               : null,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            // 第一行：图标 + 周期名称
             Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   isSelected ? Icons.check_circle : Icons.circle_outlined,
                   color: isSelected ? Colors.white : Colors.grey.shade400,
-                  size: 18,
+                  size: iconSize,
                 ),
-                const SizedBox(width: 6),
-                Expanded(
+                SizedBox(width: horizontalSpacing),
+                Flexible(
                   child: Text(
                     period['label'],
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: labelFontSize,
                       fontWeight: FontWeight.bold,
                       color: isSelected ? Colors.white : Colors.grey.shade800,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 6),
-            if (hasDiscount) ...[
+            SizedBox(height: verticalSpacing),
+            // 第二行：价格（有折扣时显示原价+折扣价，否则只显示价格）
+            if (hasDiscount)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    PriceCalculator.formatPrice(periodPrice),
+                    style: TextStyle(
+                      fontSize: originalPriceFontSize,
+                      decoration: TextDecoration.lineThrough,
+                      decorationColor: Colors.white70,
+                      color: Colors.white70,
+                    ),
+                  ),
+                  SizedBox(width: priceSpacing),
+                  Text(
+                    PriceCalculator.formatPrice(displayPrice),
+                    style: TextStyle(
+                      fontSize: priceFontSize,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              )
+            else
               Text(
                 PriceCalculator.formatPrice(periodPrice),
                 style: TextStyle(
-                  fontSize: 11,
-                  decoration: TextDecoration.lineThrough,
-                  decorationColor: Colors.white70,
-                  color: Colors.white70,
-                ),
-              ),
-              const SizedBox(height: 1),
-              Text(
-                PriceCalculator.formatPrice(displayPrice),
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ] else
-              Text(
-                PriceCalculator.formatPrice(periodPrice),
-                style: TextStyle(
-                  fontSize: 16,
+                  fontSize: priceFontSize,
                   fontWeight: FontWeight.bold,
                   color: isSelected ? Colors.white : Colors.blue.shade700,
                 ),
+                textAlign: TextAlign.center,
               ),
           ],
         ),

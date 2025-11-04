@@ -104,6 +104,59 @@ dart setup.dart android
 
 ---
 
+## 📸 应用截图
+
+<div align="center">
+
+### 主界面
+<img src="images/homepage.jpg" width="200" alt="主页"/>
+
+### 功能展示
+<table>
+  <tr>
+    <td><img src="images/plans.jpg" width="200" alt="套餐计划"/><br/><sub><b>套餐计划</b></sub></td>
+    <td><img src="images/purchase.jpg" width="200" alt="购买页面"/><br/><sub><b>购买页面</b></sub></td>
+  </tr>
+  <tr>
+    <td><img src="images/invitepage.jpg" width="200" alt="邀请页面"/><br/><sub><b>邀请页面</b></sub></td>
+    <td><img src="images/notice.jpg" width="200" alt="通知公告"/><br/><sub><b>通知公告</b></sub></td>
+  </tr>
+</table>
+
+<details>
+<summary>📱 点击查看所有截图（大图预览）</summary>
+
+<br/>
+
+**主页界面**
+![主页](images/homepage.jpg)
+
+---
+
+**套餐计划**
+![套餐计划](images/plans.jpg)
+
+---
+
+**购买页面**
+![购买](images/purchase.jpg)
+
+---
+
+**邀请页面**
+![邀请](images/invitepage.jpg)
+
+---
+
+**通知公告**
+![通知](images/notice.jpg)
+
+</details>
+
+</div>
+
+---
+
 ## 📱 平台支持
 
 | 平台 | 状态 | 备注 |

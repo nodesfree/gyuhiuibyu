@@ -24,14 +24,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   bool _isSendingEmailCode = false;
   
   @override
-  void initState() {
-    super.initState();
-    commonPrint.log('[RegisterPage] initState 被调用');
-  }
-  
-  @override
   void dispose() {
-    commonPrint.log('[RegisterPage] dispose 被调用');
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -200,7 +193,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    commonPrint.log('[RegisterPage] build 被调用');
     final colorScheme = Theme.of(context).colorScheme;
     final configAsync = ref.watch(configProvider);
     
@@ -210,14 +202,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         backgroundColor: colorScheme.surface,
         body: const Center(child: CircularProgressIndicator()),
       ),
-      error: (error, stack) {
-        commonPrint.log('[RegisterPage] 加载配置失败: $error');
-        return _buildPage(context, colorScheme, null);
-      },
-      data: (config) {
-        commonPrint.log('[RegisterPage] 配置加载成功');
-        return _buildPage(context, colorScheme, config);
-      },
+      error: (error, stack) => _buildPage(context, colorScheme, null),
+      data: (config) => _buildPage(context, colorScheme, config),
     );
   }
   

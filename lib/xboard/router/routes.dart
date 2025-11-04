@@ -6,8 +6,6 @@ import 'package:fl_clash/xboard/features/payment/pages/payment_gateway_page.dart
 import 'package:fl_clash/xboard/features/online_support/pages/online_support_page.dart';
 import 'package:fl_clash/xboard/features/invite/pages/invite_page.dart';
 import 'package:fl_clash/xboard/features/auth/pages/login_page.dart';
-import 'package:fl_clash/xboard/features/auth/pages/register_page.dart';
-import 'package:fl_clash/xboard/features/auth/pages/forgot_password_page.dart';
 import 'package:fl_clash/xboard/sdk/xboard_sdk.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -121,24 +119,6 @@ final List<RouteBase> routes = [
       name: 'login',
       pageBuilder: (context, state) => const MaterialPage(
         child: LoginPage(),
-      ),
-    ),
-    
-    // 注册页面
-    GoRoute(
-      path: '/register',
-      name: 'register',
-      pageBuilder: (context, state) => const MaterialPage(
-        child: RegisterPage(),
-      ),
-    ),
-    
-    // 忘记密码页面
-    GoRoute(
-      path: '/forgot-password',
-      name: 'forgot_password',
-      pageBuilder: (context, state) => const MaterialPage(
-        child: ForgotPasswordPage(),
       ),
     ),
     

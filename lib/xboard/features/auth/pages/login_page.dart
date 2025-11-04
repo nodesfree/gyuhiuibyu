@@ -30,12 +30,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _storageService = ref.read(storageServiceProvider);
-      _loadSavedCredentials();
-      _checkDomainStatus();
-      _loadAppInfo();
-    });
+    _storageService = ref.read(storageServiceProvider);
+    _loadSavedCredentials();
+    _checkDomainStatus();
+    _loadAppInfo();
   }
   
   /// 加载应用信息（标题和网站）
@@ -129,21 +127,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
   }
   void _navigateToRegister() async {
-    commonPrint.log('[LoginPage] 导航到注册页面');
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => const RegisterPage()),
     );
-    commonPrint.log('[LoginPage] 从注册页面返回');
     _loadSavedCredentials();
     _checkDomainStatus();
   }
   
   void _navigateToForgotPassword() async {
-    commonPrint.log('[LoginPage] 导航到忘记密码页面');
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
     );
-    commonPrint.log('[LoginPage] 从忘记密码页面返回');
     _checkDomainStatus();
   }
     @override

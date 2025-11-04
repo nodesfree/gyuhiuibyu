@@ -58,6 +58,7 @@ class InviteState {
   int get totalInvites => inviteData?.totalInvites ?? 0;
   int get validInvites => inviteData?.validInvites ?? 0;
   int get totalCommission => inviteData?.totalCommission ?? 0;
+  int get commissionRate => inviteData?.commissionRate ?? 0;
   int get walletBalance => (userInfo?.balance ?? 0).toInt();
   String get formattedCommission => _formatCommissionAmount(totalCommission);
   String get formattedWalletBalance => _formatCommissionAmount(walletBalance);

@@ -8,7 +8,7 @@ class InviteRulesCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(inviteProvider);
+    final inviteState = ref.watch(inviteProvider);
     
     return Card(
       child: Padding(
@@ -32,6 +32,7 @@ class InviteRulesCard extends ConsumerWidget {
             Text(
               '• ${appLocalizations.inviteRegisterReward}\n'
               '• ${appLocalizations.friendInviteReward}\n'
+              '• ${appLocalizations.currentCommissionRate(inviteState.commissionRate.toString())}\n'
               '• ${appLocalizations.commissionSettled}\n'
               '• ${appLocalizations.withdrawalAvailable}',
               style: const TextStyle(

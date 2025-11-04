@@ -56,7 +56,6 @@ class InviteState {
   bool get hasInviteData => inviteData != null;
   bool get hasActiveCodes => inviteData?.codes.any((code) => code.isActive) ?? false;
   int get totalInvites => inviteData?.totalInvites ?? 0;
-  int get validInvites => inviteData?.validInvites ?? 0;
   int get totalCommission => inviteData?.totalCommission ?? 0;
   int get pendingCommission => inviteData?.pendingCommission ?? 0;
   int get commissionRate => inviteData?.commissionRate ?? 0;

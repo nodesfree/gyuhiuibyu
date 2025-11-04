@@ -128,23 +128,10 @@ dart setup.dart android
 
 <div align="center">
 
-### 主界面
-<img src="images/homepage.jpg" width="200" alt="主页"/>
-
-### 功能展示
-<table>
-  <tr>
-    <td><img src="images/plans.jpg" width="200" alt="套餐计划"/><br/><sub><b>套餐计划</b></sub></td>
-    <td><img src="images/purchase.jpg" width="200" alt="购买页面"/><br/><sub><b>购买页面</b></sub></td>
-  </tr>
-  <tr>
-    <td><img src="images/invitepage.jpg" width="200" alt="邀请页面"/><br/><sub><b>邀请页面</b></sub></td>
-    <td><img src="images/notice.jpg" width="200" alt="通知公告"/><br/><sub><b>通知公告</b></sub></td>
-  </tr>
-</table>
+<img src="images/homepage.jpg" width="160" alt="主页"/> <img src="images/plans.jpg" width="160" alt="套餐计划"/> <img src="images/purchase.jpg" width="160" alt="购买页面"/> <img src="images/invitepage.jpg" width="160" alt="邀请页面"/> <img src="images/notice.jpg" width="160" alt="通知公告"/>
 
 <details>
-<summary>📱 点击查看所有截图（大图预览）</summary>
+<summary>📱 点击查看大图预览</summary>
 
 <br/>
 

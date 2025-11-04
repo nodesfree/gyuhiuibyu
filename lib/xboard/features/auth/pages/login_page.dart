@@ -30,10 +30,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   void initState() {
     super.initState();
-    _storageService = ref.read(storageServiceProvider);
-    _loadSavedCredentials();
-    _checkDomainStatus();
-    _loadAppInfo();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _storageService = ref.read(storageServiceProvider);
+      _loadSavedCredentials();
+      _checkDomainStatus();
+      _loadAppInfo();
+    });
   }
   
   /// 加载应用信息（标题和网站）
@@ -111,10 +113,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             );
             Future.delayed(const Duration(milliseconds: 500), () {
               if (mounted) {
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  '/', 
-                  (route) => false,
-                );
+                context.go('/');
               }
             });
           }

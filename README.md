@@ -3,6 +3,7 @@
 # XBoard Mihomo
 
 [![许可证](https://img.shields.io/github/license/chen08209/FlClash?style=flat-square)](LICENSE)
+[![Telegram群组](https://img.shields.io/badge/Telegram-加入群组-blue?style=flat-square&logo=telegram)](https://t.me/V2Hiidify)
 
 **基于 FlClash v0.8.85 的多平台代理客户端，深度集成全新 XBoard 面板支持**
 
@@ -248,7 +249,7 @@ plugins/                       # 插件（子模块）
 
 如果您在使用过程中遇到问题或有改进建议：
 - 提交 [Issue](https://github.com/hakimi-x/Xboard-Mihomo/issues)
-- 参与 [Discussions](https://github.com/hakimi-x/Xboard-Mihomo/discussions)
+- 加入 [Telegram 群组](https://t.me/V2Hiidify)
 
 ### Star 支持
 

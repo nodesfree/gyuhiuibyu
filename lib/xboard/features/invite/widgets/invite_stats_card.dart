@@ -39,9 +39,9 @@ class InviteStatsCard extends ConsumerWidget {
                   ),
                   Expanded(
                     child: StatItemWidget(
-                      title: appLocalizations.totalInvites,
-                      value: '${inviteState.validInvites}',
-                      icon: Icons.people_alt,
+                      title: appLocalizations.commissionRate,
+                      value: '${inviteState.commissionRate}%',
+                      icon: Icons.percent,
                     ),
                   ),
                   Expanded(

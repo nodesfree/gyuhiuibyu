@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fl_clash/l10n/l10n.dart';
 
 /// 移动端底部导航栏
 class MobileNavigationBar extends StatelessWidget {
@@ -13,18 +14,20 @@ class MobileNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appLocalizations = AppLocalizations.of(context);
+    
     return NavigationBar(
       selectedIndex: selectedIndex,
       height: 60,
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-      destinations: const [
+      destinations: [
         NavigationDestination(
-          icon: Icon(Icons.home, size: 22),
-          label: '首页',
+          icon: const Icon(Icons.home, size: 22),
+          label: appLocalizations.xboardHome,
         ),
         NavigationDestination(
-          icon: Icon(Icons.people, size: 22),
-          label: '邀请',
+          icon: const Icon(Icons.people, size: 22),
+          label: appLocalizations.invite,
         ),
       ],
       onDestinationSelected: onDestinationSelected,

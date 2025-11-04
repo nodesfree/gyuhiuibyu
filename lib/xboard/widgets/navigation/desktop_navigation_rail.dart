@@ -1,3 +1,4 @@
+import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/xboard/features/online_support/providers/chat_provider.dart';
 import 'package:fl_clash/xboard/features/shared/shared.dart';
 import 'package:fl_clash/xboard/features/invite/widgets/user_menu_widget.dart';
@@ -78,6 +79,8 @@ class DesktopNavigationRail extends ConsumerWidget {
     ColorScheme colorScheme,
     ChatState chatState,
   ) {
+    final appLocalizations = AppLocalizations.of(context);
+    
     return NavigationRail(
       backgroundColor: Colors.transparent,
       selectedIndex: selectedIndex,
@@ -107,12 +110,12 @@ class DesktopNavigationRail extends ConsumerWidget {
         NavigationRailDestination(
           icon: const Icon(Icons.home_outlined),
           selectedIcon: const Icon(Icons.home),
-          label: const Text('首页'),
+          label: Text(appLocalizations.xboardHome),
         ),
         NavigationRailDestination(
           icon: const Icon(Icons.shopping_bag_outlined),
           selectedIcon: const Icon(Icons.shopping_bag),
-          label: const Text('套餐'),
+          label: Text(appLocalizations.xboardPlans),
         ),
         NavigationRailDestination(
           icon: _buildIconWithBadge(
@@ -123,12 +126,12 @@ class DesktopNavigationRail extends ConsumerWidget {
             const Icon(Icons.support_agent),
             chatState.unreadCount,
           ),
-          label: const Text('客服'),
+          label: Text(appLocalizations.onlineSupport),
         ),
         NavigationRailDestination(
           icon: const Icon(Icons.people_outline),
           selectedIcon: const Icon(Icons.people),
-          label: const Text('邀请'),
+          label: Text(appLocalizations.invite),
         ),
       ],
       onDestinationSelected: onDestinationSelected,

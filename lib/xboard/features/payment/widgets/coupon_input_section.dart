@@ -24,20 +24,19 @@ class CouponInputSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width > 600;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.only(left: 4, bottom: isDesktop ? 8 : 12),
+          padding: const EdgeInsets.only(left: 4, bottom: 12),
           child: Row(
             children: [
-              Icon(Icons.local_offer, color: Colors.orange.shade600, size: isDesktop ? 18 : 20),
+              Icon(Icons.local_offer, color: Colors.orange.shade600, size: 20),
               const SizedBox(width: 6),
               Text(
                 AppLocalizations.of(context).xboardCouponOptional,
                 style: TextStyle(
-                  fontSize: isDesktop ? 14 : 15,
+                  fontSize: 15,
                   fontWeight: FontWeight.w600,
                   color: Colors.grey.shade700,
                 ),

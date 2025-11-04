@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:fl_clash/xboard/widgets/navigation/desktop_navigation_rail.dart';
 import 'package:fl_clash/xboard/widgets/navigation/mobile_navigation_bar.dart';
 import 'package:flutter/material.dart';
@@ -70,8 +71,8 @@ class AdaptiveShellLayout extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth > 600;
+    // 根据操作系统平台判断设备类型
+    final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
     final currentIndex = _getCurrentIndex(context, isDesktop);
     
     if (isDesktop) {

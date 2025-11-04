@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/l10n/l10n.dart';
@@ -44,8 +45,8 @@ class _InvitePageState extends ConsumerState<InvitePage>
     super.build(context);  // 必须调用，配合 AutomaticKeepAliveClientMixin
     
     final appLocalizations = AppLocalizations.of(context);
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth > 600;
+    // 根据操作系统平台判断设备类型
+    final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
     
     return Scaffold(
       appBar: isDesktop ? null : AppBar(

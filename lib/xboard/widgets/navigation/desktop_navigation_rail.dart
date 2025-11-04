@@ -20,18 +20,23 @@ class DesktopNavigationRail extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final chatState = ref.watch(chatProvider);
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
 
     return Container(
       width: 88,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            colorScheme.surfaceContainer,
-            colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-          ],
-        ),
+        // 浅色模式使用纯色，深色模式使用渐变色
+        gradient: isDark
+            ? LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  colorScheme.surfaceContainer,
+                  colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                ],
+              )
+            : null,
+        color: isDark ? null : colorScheme.surfaceContainer,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),

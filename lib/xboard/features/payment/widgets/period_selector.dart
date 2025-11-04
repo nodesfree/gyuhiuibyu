@@ -25,17 +25,15 @@ class PeriodSelector extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final isDesktop = MediaQuery.of(context).size.width > 600;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.only(left: 4, bottom: isDesktop ? 8 : 12),
+          padding: const EdgeInsets.only(left: 4, bottom: 12),
           child: Text(
             AppLocalizations.of(context).xboardSelectPaymentPeriod,
             style: TextStyle(
-              fontSize: isDesktop ? 14 : 15,
+              fontSize: 15,
               fontWeight: FontWeight.w600,
               color: Colors.grey.shade700,
             ),
@@ -51,8 +49,7 @@ class PeriodSelector extends StatelessWidget {
 
   Widget _buildRowLayout(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth > 600;
-    final baseWidth = isDesktop ? 1200.0 : 360.0;
+    final baseWidth = 800.0; // 统一基准宽度
     final scaleFactor = (screenWidth / baseWidth).clamp(0.8, 1.5);
     final horizontalPadding = (3 * scaleFactor).clamp(2.0, 6.0);
     
@@ -78,27 +75,23 @@ class PeriodSelector extends StatelessWidget {
 
   Widget _buildGridLayout(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth > 600;
-    
-    // 基准宽度：小屏 360，大屏 1200
-    final baseWidth = isDesktop ? 1200.0 : 360.0;
+    final baseWidth = 800.0; // 统一基准宽度
     final scaleFactor = (screenWidth / baseWidth).clamp(0.8, 1.5);
     
+    // 根据屏幕宽度动态调整列数
+    final crossAxisCount = screenWidth > 600 ? 3 : 2;
+    
     // 根据屏幕大小动态调整间距
-    final spacing = isDesktop 
-        ? (6 * scaleFactor).clamp(6.0, 12.0)
-        : (6 * scaleFactor).clamp(4.0, 10.0);
+    final spacing = (6 * scaleFactor).clamp(4.0, 12.0);
     
     // 根据屏幕大小动态调整宽高比
-    final aspectRatio = isDesktop 
-        ? (3.0 * scaleFactor).clamp(2.8, 3.5)
-        : (2.8 * scaleFactor).clamp(2.5, 3.2);
+    final aspectRatio = (3.0 * scaleFactor).clamp(2.5, 3.5);
     
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: isDesktop ? 3 : 2,
+        crossAxisCount: crossAxisCount,
         childAspectRatio: aspectRatio,
         crossAxisSpacing: spacing,
         mainAxisSpacing: spacing,

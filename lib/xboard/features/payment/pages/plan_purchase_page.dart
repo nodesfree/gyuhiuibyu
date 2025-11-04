@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -507,22 +508,23 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
   Widget build(BuildContext context) {
     final periods = _getAvailablePeriods(context);
     final currentPrice = _getCurrentPrice();
-    final isDesktop = MediaQuery.of(context).size.width > 600;
+    // 用于判断平台类型
+    final isPlatformDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
     final content = Align(
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: isDesktop ? 700 : double.infinity,
+        constraints: const BoxConstraints(
+          maxWidth: 700,
         ),
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(isDesktop ? 16 : 16),
+          padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
               // 套餐信息卡片
               PlanHeaderCard(plan: widget.plan),
-              SizedBox(height: isDesktop ? 12 : 20),
+              const SizedBox(height: 20),
 
               // 周期选择器
               PeriodSelector(
@@ -539,7 +541,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
                 couponType: _couponType,
                 couponValue: _couponValue,
               ),
-              SizedBox(height: isDesktop ? 12 : 20),
+              const SizedBox(height: 20),
 
               // 优惠券输入
               CouponInputSection(
@@ -551,7 +553,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
                 onValidate: _validateCoupon,
                 onChanged: _clearCoupon,
               ),
-              SizedBox(height: isDesktop ? 12 : 20),
+              const SizedBox(height: 20),
 
               // 价格汇总
               if (_selectedPeriod != null)
@@ -561,12 +563,12 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
                   discountAmount: _discountAmount,
                   userBalance: _userBalance,
                 ),
-              SizedBox(height: isDesktop ? 12 : 20),
+              const SizedBox(height: 20),
 
               // 确认购买按钮
             SizedBox(
               width: double.infinity,
-                height: isDesktop ? 48 : 54,
+                height: 54,
               child: Consumer(
                 builder: (context, ref, child) {
                   final paymentState = ref.watch(userUIStateProvider);
@@ -611,7 +613,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
                 },
               ),
             ),
-              SizedBox(height: isDesktop ? 8 : 16),
+              const SizedBox(height: 16),
           ],
           ),
         ),
@@ -625,7 +627,7 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
 
     // 移动端全屏或独立页面：带 AppBar 的 Scaffold
     return Scaffold(
-      appBar: isDesktop ? null : AppBar(
+      appBar: isPlatformDesktop ? null : AppBar(
         title: Text(AppLocalizations.of(context).xboardPurchaseSubscription),
       ),
       body: content,

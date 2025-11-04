@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
@@ -75,9 +76,8 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
     super.build(context);  // 必须调用，配合 AutomaticKeepAliveClientMixin
     
     final appLocalizations = AppLocalizations.of(context);
-    // 获取屏幕宽度判断是否桌面端
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth > 600;
+    // 根据操作系统平台判断设备类型
+    final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
     
     return Scaffold(
       appBar: isDesktop ? null : AppBar(

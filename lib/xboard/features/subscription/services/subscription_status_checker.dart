@@ -1,11 +1,12 @@
+import 'dart:io';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/providers/providers.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:fl_clash/xboard/features/subscription/widgets/subscription_status_dialog.dart';
-import 'package:fl_clash/xboard/features/payment/pages/plans.dart';
 import 'package:fl_clash/xboard/features/profile/providers/profile_import_provider.dart';
 
 import 'subscription_status_service.dart';
@@ -83,11 +84,16 @@ class SubscriptionStatusChecker {
       context,
       statusResult,
       onPurchase: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => const PlansView(),
-          ),
-        );
+        // 根据操作系统平台判断设备类型，选择不同的导航方式
+        final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
+        
+        if (isDesktop) {
+          // 桌面端：使用 go 切换导航分支，保持侧边栏可见
+          context.go('/plans');
+        } else {
+          // 移动端（iOS/Android）：使用 push 保留路由栈，可以返回
+          context.push('/plans');
+        }
       },
       onRefresh: () async {
         commonPrint.log('[SubscriptionStatusChecker] 刷新订阅状态...');

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/xboard/features/online_support/models/message_model.dart';
@@ -169,8 +170,8 @@ class _OnlineSupportPageState extends ConsumerState<OnlineSupportPage> {
     }
 
     // 页面构建
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth > 600;
+    // 根据操作系统平台判断设备类型
+    final isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
     
     final scaffold = Scaffold(
       appBar: isDesktop 

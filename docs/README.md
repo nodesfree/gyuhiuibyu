@@ -92,7 +92,7 @@ xboard:
   provider: mihomo
   remote_config:
     sources:
-      - name: main_source
+      - name: redirect
         url: https://your-domain.com/config.json
         priority: 100
 ```

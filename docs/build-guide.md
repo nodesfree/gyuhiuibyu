@@ -98,6 +98,29 @@ cd ../../..
 flutter pub get
 ```
 
+### 5. 配置 XBoard 配置文件 ⭐
+
+**首次使用必须配置此文件！**
+
+```bash
+# 复制示例配置文件
+cp assets/config/xboard.config.example.yaml assets/config/xboard.config.yaml
+
+# 编辑配置文件，填入你的真实配置
+# 使用你喜欢的编辑器打开 assets/config/xboard.config.yaml
+```
+
+**必须修改的配置项：**
+- `provider` - 你的提供商名称
+- `remote_config.sources[].url` - 远程配置源地址
+- `app.title` 和 `app.website` - 应用信息
+- `security.decrypt_key` - 订阅解密密钥（如果使用加密订阅）
+
+> 💡 **配置说明**：  
+> - 详细配置说明请参考配置文件中的注释
+> - 更多配置示例：[快速开始](quick-start.md) | [配置文档](configuration.md)
+> - ⚠️ 原始配置文件 `xboard.config.yaml` 已被 `.gitignore` 保护，不会被提交到 Git
+
 ---
 
 ## 构建步骤

@@ -52,6 +52,13 @@ Xboard-Mihomo 采用**主源配置**的方式管理服务器信息：
 
 ### 第二步：配置客户端 `xboard.config.yaml`
 
+> ⚠️ **首次配置必读**：
+> 1. 复制示例配置文件：
+>    ```bash
+>    cp assets/config/xboard.config.example.yaml assets/config/xboard.config.yaml
+>    ```
+> 2. 编辑 `assets/config/xboard.config.yaml` 文件，填入你的真实配置
+
 编辑 `assets/config/xboard.config.yaml` 文件，**只需配置主源地址**：
 
 ```yaml
@@ -62,7 +69,7 @@ xboard:
   # 远程配置源 - 指向 config.json 的托管地址
   remote_config:
     sources:
-      - name: main_source
+      - name: redirect
         url: https://your-domain.com/config.json
         priority: 100
 ```

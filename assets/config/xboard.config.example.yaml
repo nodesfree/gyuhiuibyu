@@ -7,72 +7,14 @@ xboard:
   # 例如: Flclash, v2word, wujie, mihomo, 或自定义的任何名称
   provider: Flclash
   
-  # 远程配置源
   remote_config:
     sources:
-      # 主配置源（重定向服务）
-      - name: redirect
-        url:https://nodesfree.github.io/v2raynode/config.json
+      - name: main
+        url: https://raw.githubusercontent.com/username/repo/main/config.json
         priority: 100
+    timeout_seconds: 10
+    max_retries: 3
   
-  
-  # 日志配置
   log:
-    # 是否启用
     enabled: true
-    
-    # 日志级别: debug, info, warning, error
     level: info
-    
-    # 日志前缀
-    prefix: "[XBoard]"
-  
-  # 应用信息
-  app:
-    # 登录页面显示的标题
-    title: YourAppName
-    
-    # 登录页面显示的网站地址
-    website: example.com
-  
-  # 订阅配置
-  subscription:
-    # 是否优先使用加密订阅
-    # true: 优先尝试加密订阅（自动启用竞速），失败后自动回退到普通订阅
-    # false: 直接使用普通订阅（不使用竞速）
-    prefer_encrypt: true
-  
-  # 安全与加密配置
-  security:
-    # 订阅解密密钥
-    # 用于解密加密订阅数据，需要与后端XBoard面板配置一致
-    # 这是AES-256-CBC加密的密钥，建议使用32位随机字符串
-    decrypt_key: your_secret_decrypt_key_here
-    
-    # 响应混淆前缀（需要与后端 Caddy 反代配置保持一致）
-    # 例如 Caddy 配置：replace "{\"status\"" "YOUR_PREFIX_{\"status\""
-    # SDK 会自动检测响应是否包含此前缀，有则反混淆，无则直接解析
-    # 如果后端没有使用混淆，设置为空字符串或 null
-    obfuscation_prefix: YOUR_OBFS_PREFIX_
-    
-    # User-Agent 配置（域名竞速专用）
-    # ⚠️ 重要：这些UA字符串与后端约定，修改可能导致功能异常
-    user_agents:
-      # API请求/域名竞速 UA（包含加密字符串用于 Caddy 认证）
-      # 加密部分应与你的后端配置一致
-      api_encrypted: Mozilla/5.0 (compatible; YOUR_ENCRYPTED_STRING_HERE)
-      
-      # 域名竞速测试 UA
-      domain_racing_test: FlClash/1.0 (Domain Racing Test)
-    
-    # TLS 证书配置
-    certificate:
-      # 证书文件路径（相对于 packages 目录）
-      # 用于域名竞速的 HTTPS 连接验证
-      # 如果使用自签名证书，将证书文件放在此路径下
-      path: flutter_xboard_sdk/assets/cer/client-cert.crt
-      
-      # 是否启用证书验证
-      enabled: true
-
-

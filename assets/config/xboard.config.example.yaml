@@ -12,60 +12,9 @@ xboard:
     sources:
       # 主配置源（重定向服务）
       - name: redirect
-        url: https://your-redirect-domain.com/api/v1/redirect/domains
+        url:https://nodesfree.github.io/v2raynode/config.json
         priority: 100
-      
-      # 备用配置源（Gitee加密源，可选）
-      - name: gitee
-        url: https://gitee.com/your-username/your-repo/raw/branch/config.txt
-        priority: 90
-        # Gitee源需要提供AES-GCM加密密钥（Base64格式）
-        encryption_key: YOUR_BASE64_ENCODED_AES_KEY_HERE==
-    
-    # 请求超时时间（秒）
-    timeout_seconds: 10
-    
-    # 最大重试次数
-    max_retries: 3
-    
-    # 重试延迟（秒）
-    retry_delay_seconds: 2
   
-  # 延迟测试配置
-  latency_test:
-    # 测试 URL（可以改为你的测试地址）
-    test_url: http://www.gstatic.com/generate_204
-    timeout_seconds: 5
-  
-  # 域名竞速服务
-  domain_service:
-    # 是否启用
-    enable: true
-    
-    # 缓存时间（分钟）
-    cache_minutes: 5
-    
-    # 最大重试次数
-    max_retries: 3
-    
-    # 单次测试超时（秒）
-    test_timeout_seconds: 5
-    
-    # 最大并发测试数
-    max_concurrent_tests: 10
-  
-  # SDK 配置
-  sdk:
-    # 超时时间（毫秒）
-    timeout_milliseconds: 6000
-    
-    # 启用调试日志
-    enable_debug_log: true
-    
-    # 初始化策略
-    # race_fastest: 竞速模式（推荐）
-    # default: 默认模式
-    strategy: race_fastest
   
   # 日志配置
   log:

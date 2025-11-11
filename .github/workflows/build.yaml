@@ -217,7 +217,16 @@ jobs:
       - name: Get Flutter Packages
         run: |
           flutter pub get
-  
+      - name: Generate SDK Code
+        run: |
+          cd lib/sdk/flutter_xboard_sdk
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+          cd ../../..
+
+      - name: Generate Main Project Code
+        run: dart run build_runner build --delete-conflicting-outputs
+        
       - name: Reinstall iOS Dependencies
         run: |
           cd ios

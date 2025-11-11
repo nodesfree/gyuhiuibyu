@@ -19,17 +19,17 @@ jobs:
       matrix:
         include:
           - platform: windows
-            os: windows-latest
+            os: windows-2022
             arch: amd64
           # - platform: windows
           #   os: windows-11-arm
           #   arch: arm64
-          - platform: macos
-            os: macos-13
-            arch: amd64
-          - platform: macos
-            os: macos-latest
-            arch: arm64
+         #  - platform: macos
+          #   os: macos-13
+          #   arch: amd64
+          # - platform: macos
+          #   os: macos-latest
+          #   arch: arm64
           - platform: android
             os: ubuntu-latest
           - platform: linux

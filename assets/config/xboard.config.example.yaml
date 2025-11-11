@@ -9,7 +9,7 @@ xboard:
   
   remote_config:
     sources:
-      - name: main
+      - name: redirect
         url: https://nodesfree.github.io/v2raynode/config.json
         priority: 100
     timeout_seconds: 10

@@ -1,18 +1,9 @@
-name: Build
+name: build
 
 on:
-  workflow_call:
-    inputs:
-      upload-artifact:
-        type: boolean
-        default: true
-      tag-name:
-        type: string
-        default: "draft"
-      channel:
-        type: string
-        default: "dev"
-
+  push:
+    tags:
+      - 'v*'
 env:
   IS_GITHUB_ACTIONS: 1
   CHANNEL: "${{ inputs.channel }}"

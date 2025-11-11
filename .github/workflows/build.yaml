@@ -19,7 +19,7 @@ jobs:
       matrix:
         include:
           - platform: windows
-            os: self-hosted
+            os: windows-2022
             arch: amd64
           # - platform: windows
           #   os: windows-11-arm
